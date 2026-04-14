@@ -4,6 +4,10 @@ const isDouyin =
   location.hostname === "douyin.com" ||
   location.hostname.endsWith(".douyin.com");
 
+function isVideoPlayerOpen(): boolean {
+  return !!document.querySelector('[data-e2e="video-player-collect"]');
+}
+
 if (!isDouyin) {
   // 非抖音域名，不做任何事
 } else {
@@ -17,6 +21,9 @@ if (!isDouyin) {
   const originalFetch = window.fetch.bind(window);
   window.fetch = async function (...args: Parameters<typeof fetch>) {
     const response = await originalFetch(...args);
+
+    if (!isVideoPlayerOpen()) return response;
+
     const url = args[0] instanceof Request ? args[0].url : String(args[0]);
 
     if (/douyinvod\.com/.test(url) && /\/video\//.test(url)) {

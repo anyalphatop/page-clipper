@@ -58,16 +58,13 @@ if (isDouyin) {
     });
     btn.addEventListener("click", () => {
       const url = btn!.dataset.url;
-      console.log(`${PREFIX} 🖱️ 按钮点击，url=${url}`);
-      if (url) {
-        console.log(`${PREFIX} 📤 派发 CustomEvent`);
-        window.dispatchEvent(
-          new CustomEvent("__pageclipper_download__", { detail: { url } })
-        );
-        console.log(`${PREFIX} 📤 CustomEvent 已派发`);
-      } else {
-        console.warn(`${PREFIX} ⚠️ dataset.url 为空`);
-      }
+      if (!url) return;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "douyin_video.mp4";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     });
     document.body.appendChild(btn);
     return btn;

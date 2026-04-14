@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === "download" && msg.url) {
     console.log("[PageClipper BG] 开始下载", msg.url);
     chrome.downloads.download(
-      { url: msg.url, headers: [{ name: "Referer", value: "https://www.douyin.com/" }] },
+      { url: msg.url },
       (downloadId) => {
         if (chrome.runtime.lastError) {
           console.error("[PageClipper BG] download 失败:", chrome.runtime.lastError.message);

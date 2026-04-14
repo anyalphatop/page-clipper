@@ -11,6 +11,7 @@ if (!isDouyin) {
 
   // aweme_id → play_url 缓存，feed 响应到来时持续追加
   const cache = new Map<string, string>();
+  let lastLoggedModalId = "";
 
   function isVideoPlayerOpen(): boolean {
     return !!document.querySelector('[data-e2e="video-player-collect"]');
@@ -22,9 +23,11 @@ if (!isDouyin) {
   }
 
   function tryLog(modalId: string) {
+    if (modalId === lastLoggedModalId) return; // 同一个视频不重复打印
     if (!isVideoPlayerOpen()) return;
     const url = cache.get(modalId);
     if (url) {
+      lastLoggedModalId = modalId;
       console.log(`${PREFIX} ✅ 视频链接: ${url}`);
     } else {
       console.log(`${PREFIX} ⏳ 未命中缓存: modal_id=${modalId}`);

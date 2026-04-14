@@ -18,17 +18,14 @@ if (!isDouyin) {
     return m ? m[1] : null;
   }
 
-  // 读取 xgplayer 当前视频流 URL
-  function readPlayerUrl(): string {
-    return (window as any).player?.config?.url?.[0]?.src ?? "";
-  }
-
-  // 读取音频流 URL（视频和音频是分离的 DASH 流）
-  function readAudioUrl(): string {
-    return (
-      (window as any).player?.config?.awemeInfo?.video
-        ?.bitRateAudioList?.[0]?.urlList?.[0]?.src ?? ""
-    );
+  // 从 bitRateList 里找 format=mp4 且 h264 的最高码率条目（音视频合并）
+  function readCombinedMp4Url(): string {
+    const bitRateList: any[] =
+      (window as any).player?.config?.awemeInfo?.video?.bitRateList ?? [];
+    const best = bitRateList
+      .filter((b) => b.format === "mp4" && !b.isH265)
+      .sort((a, b) => b.bitRate - a.bitRate)[0];
+    return best?.playAddr?.[0]?.src ?? best?.urlList?.[0]?.src ?? "";
   }
 
   let lastModalId = "";
@@ -37,14 +34,10 @@ if (!isDouyin) {
     const modalId = getModalId();
     if (!modalId || modalId === lastModalId) return;
     if (!isVideoPlayerOpen()) return;
-    const videoUrl = readPlayerUrl();
-    const audioUrl = readAudioUrl();
-    if (videoUrl) {
+    const url = readCombinedMp4Url();
+    if (url) {
       lastModalId = modalId;
-      console.log(`${PREFIX} ✅ 视频流: ${videoUrl}`);
-      if (audioUrl) {
-        console.log(`${PREFIX} 🔊 音频流: ${audioUrl}`);
-      }
+      console.log(`${PREFIX} ✅ 视频链接: ${url}`);
     } else {
       console.log(`${PREFIX} ⏳ 播放器未就绪: modal_id=${modalId}`);
     }

@@ -1,0 +1,26 @@
+{
+  "name": "page-clipper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anyalphatop/page-clipper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/anyalphatop/page-clipper/issues"
+  },
+  "homepage": "https://github.com/anyalphatop/page-clipper#readme",
+  "devDependencies": {
+    "@types/chrome": "^0.1.40",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8"
+  }
+}

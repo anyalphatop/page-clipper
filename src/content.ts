@@ -26,10 +26,62 @@ if (isDouyin) {
     return best?.playAddr?.[0]?.src ?? best?.urlList?.[0]?.src ?? "";
   }
 
+  // ── 下载按钮 ──────────────────────────────────────────────
+  let btn: HTMLButtonElement | null = null;
+
+  function getOrCreateBtn(): HTMLButtonElement {
+    if (btn) return btn;
+
+    btn = document.createElement("button");
+    btn.textContent = "下载";
+    btn.style.cssText = `
+      position: fixed;
+      bottom: 80px;
+      right: 24px;
+      z-index: 99999;
+      padding: 8px 18px;
+      background: #fe2c55;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      display: none;
+    `;
+    btn.addEventListener("mouseenter", () => {
+      btn!.style.background = "#e0183d";
+    });
+    btn.addEventListener("mouseleave", () => {
+      btn!.style.background = "#fe2c55";
+    });
+    btn.addEventListener("click", () => {
+      const url = btn!.dataset.url;
+      if (url) {
+        window.dispatchEvent(
+          new CustomEvent("__pageclipper_download__", { detail: { url } })
+        );
+      }
+    });
+    document.body.appendChild(btn);
+    return btn;
+  }
+
+  function showBtn(url: string) {
+    const b = getOrCreateBtn();
+    b.dataset.url = url;
+    b.style.display = "block";
+  }
+
+  function hideBtn() {
+    if (btn) btn.style.display = "none";
+  }
+
+  // ── 核心逻辑 ─────────────────────────────────────────────
   let lastModalId = "";
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // 尝试读取并打印视频链接，播放器未就绪时最多重试 retries 次（每次间隔 300ms）
   function tryLog(retries = 5) {
     const modalId = getModalId();
     if (!modalId || modalId === lastModalId) return;
@@ -38,6 +90,7 @@ if (isDouyin) {
     if (url && isVideoPlayerOpen()) {
       lastModalId = modalId;
       console.log(`${PREFIX} ✅ 视频链接: ${url}`);
+      showBtn(url);
       return;
     }
 
@@ -51,6 +104,8 @@ if (isDouyin) {
       clearTimeout(retryTimer);
       retryTimer = null;
     }
+    // 关闭视频时隐藏按钮
+    if (!getModalId()) hideBtn();
     setTimeout(() => tryLog(), 500);
   }
 

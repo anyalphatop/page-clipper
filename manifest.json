@@ -5,12 +5,18 @@
   "action": {
     "default_popup": "popup.html"
   },
+  "permissions": ["downloads"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_start",
       "world": "MAIN"
+    },
+    {
+      "matches": ["*://*.douyin.com/*"],
+      "js": ["content-bridge.js"],
+      "run_at": "document_start"
     }
   ],
   "background": {

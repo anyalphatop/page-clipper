@@ -17,6 +17,7 @@ export default defineConfig({
       input: {
         popup: resolve(__dirname, "popup.html"),
         background: resolve(__dirname, "src/background.ts"),
+        "content-bridge": resolve(__dirname, "src/content-bridge.ts"),
       },
       output: {
         entryFileNames: "[name].js",

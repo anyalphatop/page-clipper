@@ -8,6 +8,7 @@ export default defineConfig({
       name: "copy-manifest",
       closeBundle() {
         copyFileSync("manifest.json", "dist/manifest.json");
+        copyFileSync("rules.json", "dist/rules.json");
       },
     },
   ],

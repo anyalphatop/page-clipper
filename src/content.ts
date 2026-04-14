@@ -18,9 +18,17 @@ if (!isDouyin) {
     return m ? m[1] : null;
   }
 
-  // 读取 xgplayer 当前视频的真实 URL
+  // 读取 xgplayer 当前视频流 URL
   function readPlayerUrl(): string {
     return (window as any).player?.config?.url?.[0]?.src ?? "";
+  }
+
+  // 读取音频流 URL（视频和音频是分离的 DASH 流）
+  function readAudioUrl(): string {
+    return (
+      (window as any).player?.config?.awemeInfo?.video
+        ?.bitRateAudioList?.[0]?.urlList?.[0]?.src ?? ""
+    );
   }
 
   let lastModalId = "";
@@ -29,10 +37,14 @@ if (!isDouyin) {
     const modalId = getModalId();
     if (!modalId || modalId === lastModalId) return;
     if (!isVideoPlayerOpen()) return;
-    const url = readPlayerUrl();
-    if (url) {
+    const videoUrl = readPlayerUrl();
+    const audioUrl = readAudioUrl();
+    if (videoUrl) {
       lastModalId = modalId;
-      console.log(`${PREFIX} ✅ 视频链接: ${url}`);
+      console.log(`${PREFIX} ✅ 视频流: ${videoUrl}`);
+      if (audioUrl) {
+        console.log(`${PREFIX} 🔊 音频流: ${audioUrl}`);
+      }
     } else {
       console.log(`${PREFIX} ⏳ 播放器未就绪: modal_id=${modalId}`);
     }

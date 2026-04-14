@@ -56,15 +56,32 @@ if (isDouyin) {
     btn.addEventListener("mouseleave", () => {
       btn!.style.background = "#fe2c55";
     });
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const url = btn!.dataset.url;
       if (!url) return;
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "douyin_video.mp4";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      btn!.textContent = "下载中…";
+      btn!.style.opacity = "0.6";
+      btn!.style.pointerEvents = "none";
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = "douyin_video.mp4";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      } catch (e) {
+        console.error(`${PREFIX} 下载失败`, e);
+        alert("下载失败，请重试");
+      } finally {
+        btn!.textContent = "下载";
+        btn!.style.opacity = "1";
+        btn!.style.pointerEvents = "auto";
+      }
     });
     document.body.appendChild(btn);
     return btn;

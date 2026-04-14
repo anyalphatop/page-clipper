@@ -9,7 +9,11 @@ chrome.runtime.onMessage.addListener((msg) => {
     chrome.downloads.download(
       { url: msg.url, headers: [{ name: "Referer", value: "https://www.douyin.com/" }] },
       (downloadId) => {
-        console.log("[PageClipper BG] download 回调 id=", downloadId, chrome.runtime.lastError);
+        if (chrome.runtime.lastError) {
+          console.error("[PageClipper BG] download 失败:", chrome.runtime.lastError.message);
+        } else {
+          console.log("[PageClipper BG] download 成功 id=", downloadId);
+        }
       }
     );
   }

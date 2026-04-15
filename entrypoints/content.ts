@@ -9,7 +9,6 @@ const DOWNLOAD_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://ww
   <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
 </svg>`;
 
-// ─── 轮询检测 ────────────────────────────────────────────────────────────────
 
 // 获取当前可见的活跃视频元素
 function getActiveVideo(): Element | null {
@@ -22,7 +21,6 @@ function hasTingDouyin(video: Element): boolean {
   return !!(video as HTMLElement).innerText?.includes("听抖音");
 }
 
-// ─── 按钮注入 ────────────────────────────────────────────────────────────────
 
 // 在活跃视频中找到「听抖音」按钮：
 // 1. 找到直接包含「听抖音」文字的元素
@@ -83,7 +81,6 @@ function injectDownloadBtn(activeVideo: Element): void {
   tingDouyinBtn.insertAdjacentElement("afterend", createDownloadBtn());
 }
 
-// ─── 下载处理 ────────────────────────────────────────────────────────────────
 
 // 从页面播放器实例中获取当前视频 ID
 function getVid(): string {
@@ -132,7 +129,6 @@ async function handleDownload(): Promise<void> {
   await triggerDownload(url, vid);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 export default defineContentScript({
   matches: ["*://*.douyin.com/*"],

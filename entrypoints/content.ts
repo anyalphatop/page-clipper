@@ -34,6 +34,7 @@ async function fetchBestVideoUrl(vid: string): Promise<string> {
   return best?.play_addr?.url_list?.[0];
 }
 
+// 将视频 URL 下载为 Blob，触发浏览器文件下载，文件名为视频 ID
 async function triggerDownload(url: string, vid: string): Promise<void> {
   const blob = await (await fetch(url)).blob();
   const a = Object.assign(document.createElement("a"), {

@@ -31,7 +31,7 @@ if (location.hostname === "douyin.com" || location.hostname.endsWith(".douyin.co
     const url = best?.play_addr?.url_list?.[0];
     console.log(`${PREFIX} 下载链接 =`, url);
 
-    const blob = await (await fetch(url, { credentials: "include" })).blob();
+    const blob = await (await fetch(url)).blob();
     const a = Object.assign(document.createElement("a"), {
       href: URL.createObjectURL(blob),
       download: `${vid}.mp4`,

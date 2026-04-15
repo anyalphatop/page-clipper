@@ -41,9 +41,6 @@ export default defineContentScript({
     }
 
     function injectBtn() {
-      // 防重复插入
-      if (document.getElementById(BTN_ID)) return;
-
       // 找到包含"听抖音"文字的元素
       const all = Array.from(document.querySelectorAll("*"));
       const tingEl = all.find((el) =>
@@ -61,6 +58,9 @@ export default defineContentScript({
         if (container.hasAttribute("data-popupid")) break;
       }
       if (!container) return;
+
+      // 检查容器后面是否已经插入了我们的按钮
+      if (container.nextElementSibling?.id === BTN_ID) return;
 
       // 构造按钮，复用页面已有 CSS 类
       const wrapper = document.createElement("div");

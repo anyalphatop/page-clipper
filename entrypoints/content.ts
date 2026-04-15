@@ -86,7 +86,7 @@ export default defineContentScript({
       ).filter(el => (el as HTMLElement).offsetWidth > 0);
 
       activeVideos.forEach((activeVideo) => {
-        const hasTing = !!activeVideo.innerText?.includes("听抖音");
+        const hasTing = !!(activeVideo as HTMLElement).innerText?.includes("听抖音");
         const hasBtn = !!activeVideo.querySelector(`.${BTN_CLASS}`);
         if (hasTing && !hasBtn) {
           injectBtnInto(activeVideo);

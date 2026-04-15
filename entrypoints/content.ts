@@ -48,7 +48,11 @@ export default defineContentScript({
           (n) => n.nodeType === 3 && n.textContent?.includes("听抖音")
         )
       );
-      if (!tingEl) return;
+      if (!tingEl) {
+        logger.info("未找到「听抖音」元素，跳过注入");
+        return;
+      }
+      logger.info("找到「听抖音」元素", tingEl);
 
       // 向上找到带 data-popupid 的外层容器
       let container: Element | null = tingEl;
@@ -57,10 +61,16 @@ export default defineContentScript({
         if (!container) break;
         if (container.hasAttribute("data-popupid")) break;
       }
-      if (!container) return;
+      if (!container) {
+        logger.info("未找到 data-popupid 容器，跳过注入");
+        return;
+      }
+      logger.info("找到容器", container);
 
       // 检查容器后面是否已经插入了我们的按钮
-      if (container.nextElementSibling?.id === BTN_ID) return;
+      const alreadyExists = container.nextElementSibling?.id === BTN_ID;
+      logger.info("下载按钮是否已存在:", alreadyExists);
+      if (alreadyExists) return;
 
       // 构造按钮，复用页面已有 CSS 类
       const wrapper = document.createElement("div");
@@ -86,14 +96,19 @@ export default defineContentScript({
       wrapper.addEventListener("click", handleDownload);
 
       container.insertAdjacentElement("afterend", wrapper);
-      logger.debug("下载按钮已注入");
+      logger.info("下载按钮已插入到容器后面");
     }
 
-    const observer = new MutationObserver(injectBtn);
+    const observer = new MutationObserver(() => {
+      logger.info("页面 DOM 发生变化，重新检测「听抖音」");
+      injectBtn();
+    });
 
     function start() {
+      logger.info("content script 启动，开始初次检测");
       injectBtn();
       observer.observe(document.body, { childList: true, subtree: true });
+      logger.info("MutationObserver 已启动");
     }
 
     document.addEventListener("DOMContentLoaded", start);

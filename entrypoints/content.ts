@@ -96,19 +96,46 @@ export default defineContentScript({
       wrapper.addEventListener("click", handleDownload);
 
       container.insertAdjacentElement("afterend", wrapper);
-      logger.info("下载按钮已插入到容器后面");
+      logger.info("下载按钮已插入");
     }
 
-    const observer = new MutationObserver(() => {
-      logger.info("页面 DOM 发生变化，重新检测「听抖音」");
+    // 等待 #sliderVideo 出现，出现后设置精准监听
+    function waitForSliderVideo() {
+      const existing = document.querySelector("#sliderVideo");
+      if (existing) {
+        onSliderVideoFound(existing);
+        return;
+      }
+
+      logger.info("等待 #sliderVideo 出现...");
+      const bootstrapObserver = new MutationObserver(() => {
+        const el = document.querySelector("#sliderVideo");
+        if (el) {
+          bootstrapObserver.disconnect();
+          logger.info("#sliderVideo 已出现");
+          onSliderVideoFound(el);
+        }
+      });
+      bootstrapObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
+    function onSliderVideoFound(sliderVideo: Element) {
+      // 初次注入
       injectBtn();
-    });
+
+      // 只监听 data-e2e-vid 属性变化（视频切换时才触发）
+      const vidObserver = new MutationObserver(() => {
+        const vid = sliderVideo.getAttribute("data-e2e-vid");
+        logger.info("视频切换，data-e2e-vid =", vid);
+        injectBtn();
+      });
+      vidObserver.observe(sliderVideo, { attributes: true, attributeFilter: ["data-e2e-vid"] });
+      logger.info("已开始监听 data-e2e-vid 变化");
+    }
 
     function start() {
-      logger.info("content script 启动，开始初次检测");
-      injectBtn();
-      observer.observe(document.body, { childList: true, subtree: true });
-      logger.info("MutationObserver 已启动");
+      logger.info("content script 启动");
+      waitForSliderVideo();
     }
 
     document.addEventListener("DOMContentLoaded", start);

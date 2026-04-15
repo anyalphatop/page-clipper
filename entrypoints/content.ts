@@ -85,7 +85,7 @@ function createDownloadBtn(): HTMLElement {
   return wrapper;
 }
 
-function injectBtnInto(activeVideo: Element): void {
+function injectDownloadBtn(activeVideo: Element): void {
   if (activeVideo.querySelector(`.${DOWNLOAD_BTN_CLASS}`)) return;
 
   const container = findTingContainer(activeVideo);
@@ -113,7 +113,7 @@ export default defineContentScript({
     setInterval(() => {
       const video = getActiveVideo();
       if (video && hasTingDouyin(video)) {
-        injectBtnInto(video);
+        injectDownloadBtn(video);
       }
     }, POLL_INTERVAL);
   },

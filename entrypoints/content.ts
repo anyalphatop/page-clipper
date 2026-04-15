@@ -63,7 +63,7 @@ function findTingDouyinBtn(activeVideo: Element): Element | null {
   return tingDouyinBtn;
 }
 
-// 创建下载按钮 DOM 元素
+// 创建下载按钮
 function createDownloadBtn(): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = DOWNLOAD_BTN_CLASS;

@@ -4,7 +4,6 @@ export default defineConfig({
   outDir: "dist",
   manifest: {
     name: "Page Clipper",
-    version: "1.0.0",
     icons: {
       16: "icons/icon16.png",
       48: "icons/icon48.png",

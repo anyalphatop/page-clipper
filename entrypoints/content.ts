@@ -94,6 +94,10 @@ function injectBtnInto(activeVideo: Element): void {
   container.insertAdjacentElement("afterend", createDownloadBtn());
 }
 
+function hasTingDouyin(video: Element): boolean {
+  return !!(video as HTMLElement).innerText?.includes("听抖音");
+}
+
 // 获取当前可见的活跃视频元素
 function getActiveVideo(): Element | null {
   return Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
@@ -107,7 +111,7 @@ export default defineContentScript({
   main() {
     setInterval(() => {
       const video = getActiveVideo();
-      if (video && (video as HTMLElement).innerText?.includes("听抖音")) {
+      if (video && hasTingDouyin(video)) {
         injectBtnInto(video);
       }
     }, POLL_INTERVAL);

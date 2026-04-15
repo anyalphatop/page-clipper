@@ -40,21 +40,15 @@ export default defineContentScript({
       a.click();
     }
 
-    function findVisibleTing(): Element | undefined {
-      const vh = window.innerHeight;
-      return Array.from(document.querySelectorAll("*")).find((el) => {
-        if (!Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))) return false;
-        const rect = el.getBoundingClientRect();
-        return rect.top >= 0 && rect.bottom <= vh;
-      });
-    }
-
     function injectBtn() {
       // 已存在则跳过
       if (document.getElementById(BTN_ID)) return;
 
-      // 找到当前视口内可见的「听抖音」元素
-      const tingEl = findVisibleTing();
+      // 在活跃视频里找「听抖音」元素
+      const activeVideo = document.querySelector('[data-e2e="feed-active-video"]');
+      const tingEl = activeVideo && Array.from(activeVideo.querySelectorAll("*")).find((el) =>
+        Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
+      );
       if (!tingEl) return;
 
       // 向上找到带 data-popupid 的外层容器
@@ -93,7 +87,8 @@ export default defineContentScript({
     }
 
     setInterval(() => {
-      const hasTing = !!findVisibleTing();
+      const activeVideo = document.querySelector('[data-e2e="feed-active-video"]');
+      const hasTing = !!activeVideo?.innerText?.includes("听抖音");
       const hasBtn = !!document.getElementById(BTN_ID);
 
       if (hasTing && !hasBtn) {
@@ -102,6 +97,6 @@ export default defineContentScript({
         document.getElementById(BTN_ID)?.remove();
         logger.info("「听抖音」消失，下载按钮已移除");
       }
-    }, 1000);
+    }, 500);
   },
 });

@@ -1,4 +1,4 @@
-// 注入到页面中的下载按钮的 CSS class，用于标识和避免重复注入
+// 下载按钮的 CSS class，用于避免重复注入
 const DOWNLOAD_BTN_CLASS = "__page_clipper_download_btn__";
 
 // 下载按钮内的图标 SVG

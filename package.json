@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "vite build --config vite.content.config.ts"
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip"
   },
   "repository": {
     "type": "git",
@@ -21,6 +23,7 @@
   "devDependencies": {
     "@types/chrome": "^0.1.40",
     "typescript": "^6.0.2",
-    "vite": "^8.0.8"
+    "vite": "^8.0.8",
+    "wxt": "^0.20.22"
   }
 }

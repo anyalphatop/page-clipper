@@ -5,7 +5,7 @@ export default defineContentScript({
   runAt: "document_idle",
   world: "MAIN",
   main() {
-    const BTN_ID = "__page_clipper_download_btn__";
+    const BTN_CLASS = "__page_clipper_download_btn__";
 
     const downloadSvg = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
       <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
@@ -40,13 +40,12 @@ export default defineContentScript({
       a.click();
     }
 
-    function injectBtn() {
-      // 在活跃视频里找「听抖音」元素
-      const activeVideo = document.querySelector('[data-e2e="feed-active-video"]');
+    function injectBtnInto(activeVideo: Element) {
+      // 已有按钮则跳过
+      if (activeVideo.querySelector(`.${BTN_CLASS}`)) return;
 
-      // 活跃视频里已有按钮则跳过
-      if (activeVideo?.querySelector(`#${BTN_ID}`)) return;
-      const tingEl = activeVideo && Array.from(activeVideo.querySelectorAll("*")).find((el) =>
+      // 找「听抖音」元素
+      const tingEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
         Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
       );
       if (!tingEl) return;
@@ -62,7 +61,7 @@ export default defineContentScript({
 
       // 构造按钮
       const wrapper = document.createElement("div");
-      wrapper.id = BTN_ID;
+      wrapper.className = BTN_CLASS;
       wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
 
       const inner = document.createElement("div");
@@ -89,15 +88,17 @@ export default defineContentScript({
     setInterval(() => {
       logger.info("--- 轮询开始 ---");
 
-      const activeVideo = document.querySelector('[data-e2e="feed-active-video"]');
-      const hasTing = !!activeVideo?.innerText?.includes("听抖音");
-      const hasBtn = !!activeVideo?.querySelector(`#${BTN_ID}`);
+      const activeVideos = document.querySelectorAll('[data-e2e="feed-active-video"]');
+      logger.info("找到活跃视频数量:", activeVideos.length);
 
-      logger.info("有「听抖音」:", hasTing, "| 有下载按钮:", hasBtn);
-
-      if (hasTing && !hasBtn) {
-        injectBtn();
-      }
+      activeVideos.forEach((activeVideo) => {
+        const hasTing = !!activeVideo.innerText?.includes("听抖音");
+        const hasBtn = !!activeVideo.querySelector(`.${BTN_CLASS}`);
+        logger.info("有「听抖音」:", hasTing, "| 有下载按钮:", hasBtn);
+        if (hasTing && !hasBtn) {
+          injectBtnInto(activeVideo);
+        }
+      });
 
       logger.info("--- 轮询结束 ---");
     }, 500);

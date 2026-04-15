@@ -87,6 +87,16 @@ export default defineContentScript({
       logger.info("下载按钮已插入");
     }
 
-    injectBtn();
+    setInterval(() => {
+      const hasTing = document.body?.innerText?.includes("听抖音") ?? false;
+      const hasBtn = !!document.getElementById(BTN_ID);
+
+      if (hasTing && !hasBtn) {
+        injectBtn();
+      } else if (!hasTing && hasBtn) {
+        document.getElementById(BTN_ID)?.remove();
+        logger.info("「听抖音」消失，下载按钮已移除");
+      }
+    }, 1000);
   },
 });

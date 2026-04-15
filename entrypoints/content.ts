@@ -134,6 +134,7 @@ export default defineContentScript({
   matches: ["*://*.douyin.com/*"],
   runAt: "document_idle",
   world: "MAIN",
+  // 入口：启动轮询
   main() {
     setInterval(() => {
       const video = getActiveVideo();

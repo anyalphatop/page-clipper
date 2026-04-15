@@ -14,6 +14,8 @@ export default defineContentScript({
       font-weight: 600; cursor: pointer;
     `;
 
+    btn.style.display = "none";
+
     btn.addEventListener("click", async () => {
       const vid = (window as any).player?.config?.vid;
       logger.debug("vid =", vid);
@@ -43,7 +45,25 @@ export default defineContentScript({
       a.click();
     });
 
-    document.addEventListener("DOMContentLoaded", () => document.body.appendChild(btn));
-    if (document.body) document.body.appendChild(btn);
+    const checkText = () => {
+      const visible = document.body?.innerText?.includes("听抖音") ?? false;
+      btn.style.display = visible ? "block" : "none";
+      logger.debug("听抖音 检测:", visible);
+    };
+
+    const appendBtn = () => {
+      if (!document.body.contains(btn)) document.body.appendChild(btn);
+      checkText();
+    };
+
+    document.addEventListener("DOMContentLoaded", appendBtn);
+    if (document.body) appendBtn();
+
+    const observer = new MutationObserver(checkText);
+    const startObserver = () => {
+      if (document.body) observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    };
+    document.addEventListener("DOMContentLoaded", startObserver);
+    if (document.body) startObserver();
   },
 });

@@ -1,5 +1,3 @@
-import { logger } from "../utils/logger";
-
 export default defineContentScript({
   matches: ["*://*.douyin.com/*"],
   runAt: "document_idle",
@@ -13,7 +11,6 @@ export default defineContentScript({
 
     async function handleDownload() {
       const vid = (window as any).player?.config?.vid;
-      logger.debug("vid =", vid);
 
       const params = new URLSearchParams({
         device_platform: "webapp", aid: "6383",
@@ -30,7 +27,6 @@ export default defineContentScript({
         .sort((a, b) => b.bit_rate - a.bit_rate)[0];
 
       const url = best?.play_addr?.url_list?.[0];
-      logger.debug("下载链接 =", url);
 
       const blob = await (await fetch(url)).blob();
       const a = Object.assign(document.createElement("a"), {
@@ -82,27 +78,20 @@ export default defineContentScript({
       wrapper.addEventListener("click", handleDownload);
 
       container.insertAdjacentElement("afterend", wrapper);
-      logger.info("下载按钮已插入");
     }
 
     setInterval(() => {
-      logger.info("--- 轮询开始 ---");
-
       const activeVideos = Array.from(
         document.querySelectorAll('[data-e2e="feed-active-video"]')
       ).filter(el => (el as HTMLElement).offsetWidth > 0);
-      logger.info("找到可见活跃视频数量:", activeVideos.length);
 
       activeVideos.forEach((activeVideo) => {
         const hasTing = !!activeVideo.innerText?.includes("听抖音");
         const hasBtn = !!activeVideo.querySelector(`.${BTN_CLASS}`);
-        logger.info("有「听抖音」:", hasTing, "| 有下载按钮:", hasBtn);
         if (hasTing && !hasBtn) {
           injectBtnInto(activeVideo);
         }
       });
-
-      logger.info("--- 轮询结束 ---");
     }, 500);
   },
 });

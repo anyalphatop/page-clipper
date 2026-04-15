@@ -92,9 +92,9 @@ function injectBtnInto(activeVideo: Element): void {
 }
 
 // 获取当前可见的活跃视频元素
-function getActiveVideos(): Element[] {
+function getActiveVideo(): Element | null {
   return Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
-    .filter((el) => (el as HTMLElement).offsetWidth > 0);
+    .find((el) => (el as HTMLElement).offsetWidth > 0) ?? null;
 }
 
 export default defineContentScript({
@@ -103,11 +103,10 @@ export default defineContentScript({
   world: "MAIN",
   main() {
     setInterval(() => {
-      getActiveVideos().forEach((video) => {
-        if ((video as HTMLElement).innerText?.includes("听抖音")) {
-          injectBtnInto(video);
-        }
-      });
+      const video = getActiveVideo();
+      if (video && (video as HTMLElement).innerText?.includes("听抖音")) {
+        injectBtnInto(video);
+      }
     }, 500);
   },
 });

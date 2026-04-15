@@ -94,6 +94,7 @@ function injectBtnInto(activeVideo: Element): void {
   container.insertAdjacentElement("afterend", createDownloadBtn());
 }
 
+// 判断视频元素中是否包含「听抖音」入口
 function hasTingDouyin(video: Element): boolean {
   return !!(video as HTMLElement).innerText?.includes("听抖音");
 }

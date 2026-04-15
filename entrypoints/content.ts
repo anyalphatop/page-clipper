@@ -49,18 +49,18 @@ async function handleDownload(): Promise<void> {
 // 1. 找到直接包含「听抖音」文字的元素
 // 2. 从该元素向上最多遍历 5 层，找到带 data-popupid 属性的外层容器
 function findTingDouyinButton(activeVideo: Element): Element | null {
-  const tingEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
+  const tingDouyinTextEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
     Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
   );
-  if (!tingEl) return null;
+  if (!tingDouyinTextEl) return null;
 
-  let button: Element | null = tingEl;
+  let tingDouyinButton: Element | null = tingDouyinTextEl;
   for (let i = 0; i < 5; i++) {
-    button = button.parentElement;
-    if (!button) break;
-    if (button.hasAttribute("data-popupid")) break;
+    tingDouyinButton = tingDouyinButton.parentElement;
+    if (!tingDouyinButton) break;
+    if (tingDouyinButton.hasAttribute("data-popupid")) break;
   }
-  return button;
+  return tingDouyinButton;
 }
 
 function createDownloadBtn(): HTMLElement {
@@ -95,10 +95,10 @@ function hasDownloadBtn(video: Element): boolean {
 function injectDownloadBtn(activeVideo: Element): void {
   if (hasDownloadBtn(activeVideo)) return;
 
-  const container = findTingDouyinButton(activeVideo);
-  if (!container) return;
+  const tingDouyinButton = findTingDouyinButton(activeVideo);
+  if (!tingDouyinButton) return;
 
-  container.insertAdjacentElement("afterend", createDownloadBtn());
+  tingDouyinButton.insertAdjacentElement("afterend", createDownloadBtn());
 }
 
 // 判断视频元素中是否包含「听抖音」文字

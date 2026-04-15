@@ -1,3 +1,6 @@
+// 轮询间隔（ms）
+const POLL_INTERVAL = 500;
+
 // 下载按钮的 CSS class
 const DOWNLOAD_BTN_CLASS = "__page_clipper_download_btn__";
 
@@ -107,6 +110,6 @@ export default defineContentScript({
       if (video && (video as HTMLElement).innerText?.includes("听抖音")) {
         injectBtnInto(video);
       }
-    }, 500);
+    }, POLL_INTERVAL);
   },
 });

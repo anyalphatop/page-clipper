@@ -41,11 +41,11 @@ export default defineContentScript({
     }
 
     function injectBtn() {
-      // 已存在则跳过
-      if (document.getElementById(BTN_ID)) return;
-
       // 在活跃视频里找「听抖音」元素
       const activeVideo = document.querySelector('[data-e2e="feed-active-video"]');
+
+      // 活跃视频里已有按钮则跳过
+      if (activeVideo?.querySelector(`#${BTN_ID}`)) return;
       const tingEl = activeVideo && Array.from(activeVideo.querySelectorAll("*")).find((el) =>
         Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
       );
@@ -91,14 +91,14 @@ export default defineContentScript({
 
       const activeVideo = document.querySelector('[data-e2e="feed-active-video"]');
       const hasTing = !!activeVideo?.innerText?.includes("听抖音");
-      const hasBtn = !!document.getElementById(BTN_ID);
+      const hasBtn = !!activeVideo?.querySelector(`#${BTN_ID}`);
 
       logger.info("有「听抖音」:", hasTing, "| 有下载按钮:", hasBtn);
 
       if (hasTing && !hasBtn) {
         injectBtn();
       } else if (!hasTing && hasBtn) {
-        document.getElementById(BTN_ID)?.remove();
+        activeVideo?.querySelector(`#${BTN_ID}`)?.remove();
         logger.info("「听抖音」消失，下载按钮已移除");
       }
 

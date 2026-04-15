@@ -40,16 +40,21 @@ export default defineContentScript({
       a.click();
     }
 
+    function findVisibleTing(): Element | undefined {
+      const vh = window.innerHeight;
+      return Array.from(document.querySelectorAll("*")).find((el) => {
+        if (!Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom <= vh;
+      });
+    }
+
     function injectBtn() {
       // 已存在则跳过
       if (document.getElementById(BTN_ID)) return;
 
-      // 找到包含"听抖音"文字的元素
-      const tingEl = Array.from(document.querySelectorAll("*")).find((el) =>
-        Array.from(el.childNodes).some(
-          (n) => n.nodeType === 3 && n.textContent?.includes("听抖音")
-        )
-      );
+      // 找到当前视口内可见的「听抖音」元素
+      const tingEl = findVisibleTing();
       if (!tingEl) return;
 
       // 向上找到带 data-popupid 的外层容器
@@ -88,7 +93,7 @@ export default defineContentScript({
     }
 
     setInterval(() => {
-      const hasTing = document.body?.innerText?.includes("听抖音") ?? false;
+      const hasTing = !!findVisibleTing();
       const hasBtn = !!document.getElementById(BTN_ID);
 
       if (hasTing && !hasBtn) {

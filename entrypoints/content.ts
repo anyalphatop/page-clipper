@@ -7,9 +7,17 @@ const DOWNLOAD_BTN_CLASS = "__page_clipper_download_btn__";
 // 下载按钮文字标签的 CSS class，用于在下载过程中更新进度文字
 const DOWNLOAD_BTN_LABEL_CLASS = "__page_clipper_download_btn_label__";
 
+// 下载按钮图标 span 的 CSS class，用于在下载过程中切换图标
+const DOWNLOAD_BTN_ICON_CLASS = "__page_clipper_download_btn_icon__";
+
 // 下载按钮内的图标 SVG
 const DOWNLOAD_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
   <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
+</svg>`;
+
+// 下载中的加载圈图标 SVG（配合 CSS animation 旋转）
+const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px; animation: __pc_spin__ 1s linear infinite;">
+  <circle cx="18" cy="18" r="14" stroke="currentColor" stroke-width="3" stroke-dasharray="60 28" stroke-linecap="round"/>
 </svg>`;
 
 // 获取当前可见的活跃视频元素
@@ -41,6 +49,15 @@ function findTingDouyinBtn(activeVideo: Element): Element | null {
   return tingDouyinBtn;
 }
 
+// 向页面注入旋转动画 keyframes（只注入一次）
+function injectSpinKeyframes(): void {
+  if (document.getElementById("__pc_spin_style__")) return;
+  const style = document.createElement("style");
+  style.id = "__pc_spin_style__";
+  style.textContent = "@keyframes __pc_spin__ { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }";
+  document.head.appendChild(style);
+}
+
 // 判断视频元素中是否已注入下载按钮
 function hasDownloadBtn(video: Element): boolean {
   return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
@@ -57,7 +74,7 @@ function createDownloadBtn(): HTMLElement {
 
   const iconSpan = document.createElement("span");
   iconSpan.setAttribute("role", "img");
-  iconSpan.className = "semi-icon semi-icon-default";
+  iconSpan.className = `semi-icon semi-icon-default ${DOWNLOAD_BTN_ICON_CLASS}`;
   iconSpan.innerHTML = DOWNLOAD_BTN_ICON;
 
   const label = document.createElement("div");
@@ -152,6 +169,7 @@ async function handleDownload(event: Event): Promise<void> {
   if (wrapper.dataset.downloading === "true") return;
 
   const label = wrapper.querySelector(`.${DOWNLOAD_BTN_LABEL_CLASS}`) as HTMLElement | null;
+  const icon = wrapper.querySelector(`.${DOWNLOAD_BTN_ICON_CLASS}`) as HTMLElement | null;
 
   const vid = getVid();
   if (!vid) return;
@@ -160,12 +178,14 @@ async function handleDownload(event: Event): Promise<void> {
   if (!result) return;
 
   wrapper.dataset.downloading = "true";
+  if (icon) icon.innerHTML = DOWNLOAD_BTN_ICON_LOADING;
   try {
     await triggerDownload(result.url, vid, result.ext, (pct) => {
       if (label) label.textContent = `${pct}%`;
     });
   } finally {
     wrapper.dataset.downloading = "false";
+    if (icon) icon.innerHTML = DOWNLOAD_BTN_ICON;
     if (label) label.textContent = "下载";
   }
 }
@@ -176,6 +196,7 @@ export default defineContentScript({
   world: "MAIN",                  // 运行在页面主环境，可访问页面的 JS 变量
   // 入口：启动轮询
   main() {
+    injectSpinKeyframes();
     setInterval(() => {
       const video = getActiveVideo();
       if (video && hasTingDouyin(video)) {

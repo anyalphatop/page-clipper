@@ -9,6 +9,83 @@ const DOWNLOAD_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://ww
   <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
 </svg>`;
 
+// ─── 轮询检测 ────────────────────────────────────────────────────────────────
+
+// 获取当前可见的活跃视频元素
+function getActiveVideo(): Element | null {
+  return Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
+    .find((el) => (el as HTMLElement).offsetWidth > 0) ?? null;
+}
+
+// 判断视频元素中是否包含「听抖音」文字
+function hasTingDouyin(video: Element): boolean {
+  return !!(video as HTMLElement).innerText?.includes("听抖音");
+}
+
+// ─── 按钮注入 ────────────────────────────────────────────────────────────────
+
+// 在活跃视频中找到「听抖音」按钮：
+// 1. 找到直接包含「听抖音」文字的元素
+// 2. 从该元素向上最多遍历 5 层，找到带 data-popupid 属性的外层容器（5 层为经验值）
+function findTingDouyinBtn(activeVideo: Element): Element | null {
+  const tingDouyinTextEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
+    Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
+  );
+  if (!tingDouyinTextEl) return null;
+
+  let tingDouyinBtn: Element | null = tingDouyinTextEl;
+  for (let i = 0; i < 5; i++) {
+    tingDouyinBtn = tingDouyinBtn.parentElement;
+    if (!tingDouyinBtn) break;
+    if (tingDouyinBtn.hasAttribute("data-popupid")) break;
+  }
+  return tingDouyinBtn;
+}
+
+// 判断视频元素中是否已注入下载按钮
+function hasDownloadBtn(video: Element): boolean {
+  return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
+}
+
+// 创建下载按钮
+function createDownloadBtn(): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = DOWNLOAD_BTN_CLASS;
+  wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
+
+  const inner = document.createElement("div");
+  inner.className = "fR9ZbClg JBKVqbn_";
+
+  const iconSpan = document.createElement("span");
+  iconSpan.setAttribute("role", "img");
+  iconSpan.className = "semi-icon semi-icon-default";
+  iconSpan.innerHTML = DOWNLOAD_BTN_ICON;
+
+  const label = document.createElement("div");
+  label.className = "rWZP7wQY";
+  label.textContent = "下载";
+
+  inner.appendChild(iconSpan);
+  inner.appendChild(label);
+  wrapper.appendChild(inner);
+  wrapper.addEventListener("click", handleDownload);
+
+  return wrapper;
+}
+
+// 将下载按钮注入到「听抖音」按钮的后面
+function injectDownloadBtn(activeVideo: Element): void {
+  if (hasDownloadBtn(activeVideo)) return;
+
+  const tingDouyinBtn = findTingDouyinBtn(activeVideo);
+  if (!tingDouyinBtn) return;
+
+  tingDouyinBtn.insertAdjacentElement("afterend", createDownloadBtn());
+}
+
+// ─── 下载处理 ────────────────────────────────────────────────────────────────
+
+// 从页面播放器实例中获取当前视频 ID
 function getVid(): string {
   return (window as any).player?.config?.vid;
 }
@@ -55,75 +132,7 @@ async function handleDownload(): Promise<void> {
   await triggerDownload(url, vid);
 }
 
-// 在活跃视频中找到「听抖音」按钮：
-// 1. 找到直接包含「听抖音」文字的元素
-// 2. 从该元素向上最多遍历 5 层，找到带 data-popupid 属性的外层容器（5 层为经验值）
-function findTingDouyinBtn(activeVideo: Element): Element | null {
-  const tingDouyinTextEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
-    Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
-  );
-  if (!tingDouyinTextEl) return null;
-
-  let tingDouyinBtn: Element | null = tingDouyinTextEl;
-  for (let i = 0; i < 5; i++) {
-    tingDouyinBtn = tingDouyinBtn.parentElement;
-    if (!tingDouyinBtn) break;
-    if (tingDouyinBtn.hasAttribute("data-popupid")) break;
-  }
-  return tingDouyinBtn;
-}
-
-// 创建下载按钮
-function createDownloadBtn(): HTMLElement {
-  const wrapper = document.createElement("div");
-  wrapper.className = DOWNLOAD_BTN_CLASS;
-  wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
-
-  const inner = document.createElement("div");
-  inner.className = "fR9ZbClg JBKVqbn_";
-
-  const iconSpan = document.createElement("span");
-  iconSpan.setAttribute("role", "img");
-  iconSpan.className = "semi-icon semi-icon-default";
-  iconSpan.innerHTML = DOWNLOAD_BTN_ICON;
-
-  const label = document.createElement("div");
-  label.className = "rWZP7wQY";
-  label.textContent = "下载";
-
-  inner.appendChild(iconSpan);
-  inner.appendChild(label);
-  wrapper.appendChild(inner);
-  wrapper.addEventListener("click", handleDownload);
-
-  return wrapper;
-}
-
-// 判断视频元素中是否已注入下载按钮
-function hasDownloadBtn(video: Element): boolean {
-  return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
-}
-
-// 将下载按钮注入到「听抖音」按钮的后面
-function injectDownloadBtn(activeVideo: Element): void {
-  if (hasDownloadBtn(activeVideo)) return;
-
-  const tingDouyinBtn = findTingDouyinBtn(activeVideo);
-  if (!tingDouyinBtn) return;
-
-  tingDouyinBtn.insertAdjacentElement("afterend", createDownloadBtn());
-}
-
-// 判断视频元素中是否包含「听抖音」文字
-function hasTingDouyin(video: Element): boolean {
-  return !!(video as HTMLElement).innerText?.includes("听抖音");
-}
-
-// 获取当前可见的活跃视频元素
-function getActiveVideo(): Element | null {
-  return Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
-    .find((el) => (el as HTMLElement).offsetWidth > 0) ?? null;
-}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default defineContentScript({
   matches: ["*://*.douyin.com/*"],

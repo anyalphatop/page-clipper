@@ -1,4 +1,4 @@
-const PREFIX = "[PageClipper]";
+const PREFIX = "[Page Clipper]";
 
 export const logger = {
   debug: console.debug.bind(console, PREFIX),

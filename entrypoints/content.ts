@@ -2,7 +2,7 @@ import { logger } from "../utils/logger";
 
 export default defineContentScript({
   matches: ["*://*.douyin.com/*"],
-  runAt: "document_start",
+  runAt: "document_idle",
   world: "MAIN",
   main() {
     const BTN_ID = "__page_clipper_download_btn__";
@@ -41,18 +41,16 @@ export default defineContentScript({
     }
 
     function injectBtn() {
+      // 已存在则跳过
+      if (document.getElementById(BTN_ID)) return;
+
       // 找到包含"听抖音"文字的元素
-      const all = Array.from(document.querySelectorAll("*"));
-      const tingEl = all.find((el) =>
+      const tingEl = Array.from(document.querySelectorAll("*")).find((el) =>
         Array.from(el.childNodes).some(
           (n) => n.nodeType === 3 && n.textContent?.includes("听抖音")
         )
       );
-      if (!tingEl) {
-        logger.info("未找到「听抖音」元素，跳过注入");
-        return;
-      }
-      logger.info("找到「听抖音」元素", tingEl);
+      if (!tingEl) return;
 
       // 向上找到带 data-popupid 的外层容器
       let container: Element | null = tingEl;
@@ -61,18 +59,9 @@ export default defineContentScript({
         if (!container) break;
         if (container.hasAttribute("data-popupid")) break;
       }
-      if (!container) {
-        logger.info("未找到 data-popupid 容器，跳过注入");
-        return;
-      }
-      logger.info("找到容器", container);
+      if (!container) return;
 
-      // 检查容器后面是否已经插入了我们的按钮
-      const alreadyExists = container.nextElementSibling?.id === BTN_ID;
-      logger.info("下载按钮是否已存在:", alreadyExists);
-      if (alreadyExists) return;
-
-      // 构造按钮，复用页面已有 CSS 类
+      // 构造按钮
       const wrapper = document.createElement("div");
       wrapper.id = BTN_ID;
       wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
@@ -92,52 +81,12 @@ export default defineContentScript({
       inner.appendChild(iconSpan);
       inner.appendChild(label);
       wrapper.appendChild(inner);
-
       wrapper.addEventListener("click", handleDownload);
 
       container.insertAdjacentElement("afterend", wrapper);
       logger.info("下载按钮已插入");
     }
 
-    // 等待 #sliderVideo 出现，出现后设置精准监听
-    function waitForSliderVideo() {
-      const existing = document.querySelector("#sliderVideo");
-      if (existing) {
-        onSliderVideoFound(existing);
-        return;
-      }
-
-      logger.info("等待 #sliderVideo 出现...");
-      const bootstrapObserver = new MutationObserver(() => {
-        const el = document.querySelector("#sliderVideo");
-        if (el) {
-          bootstrapObserver.disconnect();
-          logger.info("#sliderVideo 已出现");
-          onSliderVideoFound(el);
-        }
-      });
-      bootstrapObserver.observe(document.body, { childList: true, subtree: true });
-    }
-
-    function onSliderVideoFound(sliderVideo: Element) {
-      // 初次注入
-      injectBtn();
-
-      // 监听 class 属性变化——每次切换视频，class 里的 video_XXXX 必然更新
-      const vidObserver = new MutationObserver(() => {
-        logger.info("视频切换（#sliderVideo class 变化）");
-        injectBtn();
-      });
-      vidObserver.observe(sliderVideo, { attributes: true, attributeFilter: ["class"] });
-      logger.info("已开始监听 #sliderVideo class 变化");
-    }
-
-    function start() {
-      logger.info("content script 启动");
-      waitForSliderVideo();
-    }
-
-    document.addEventListener("DOMContentLoaded", start);
-    if (document.body) start();
+    injectBtn();
   },
 });

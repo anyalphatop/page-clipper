@@ -123,14 +123,13 @@ export default defineContentScript({
       // 初次注入
       injectBtn();
 
-      // 只监听 data-e2e-vid 属性变化（视频切换时才触发）
+      // 监听 class 属性变化——每次切换视频，class 里的 video_XXXX 必然更新
       const vidObserver = new MutationObserver(() => {
-        const vid = sliderVideo.getAttribute("data-e2e-vid");
-        logger.info("视频切换，data-e2e-vid =", vid);
+        logger.info("视频切换（#sliderVideo class 变化）");
         injectBtn();
       });
-      vidObserver.observe(sliderVideo, { attributes: true, attributeFilter: ["data-e2e-vid"] });
-      logger.info("已开始监听 data-e2e-vid 变化");
+      vidObserver.observe(sliderVideo, { attributes: true, attributeFilter: ["class"] });
+      logger.info("已开始监听 #sliderVideo class 变化");
     }
 
     function start() {

@@ -87,9 +87,13 @@ export default defineContentScript({
     }
 
     setInterval(() => {
+      logger.info("--- 轮询开始 ---");
+
       const activeVideo = document.querySelector('[data-e2e="feed-active-video"]');
       const hasTing = !!activeVideo?.innerText?.includes("听抖音");
       const hasBtn = !!document.getElementById(BTN_ID);
+
+      logger.info("有「听抖音」:", hasTing, "| 有下载按钮:", hasBtn);
 
       if (hasTing && !hasBtn) {
         injectBtn();
@@ -97,6 +101,8 @@ export default defineContentScript({
         document.getElementById(BTN_ID)?.remove();
         logger.info("「听抖音」消失，下载按钮已移除");
       }
+
+      logger.info("--- 轮询结束 ---");
     }, 500);
   },
 });

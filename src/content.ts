@@ -13,7 +13,6 @@ if (location.hostname === "douyin.com" || location.hostname.endsWith(".douyin.co
   btn.addEventListener("click", async () => {
     const vid = (window as any).player?.config?.vid;
     console.log(`${PREFIX} vid =`, vid);
-    if (!vid) { alert("未找到视频 ID"); return; }
 
     const params = new URLSearchParams({
       device_platform: "webapp", aid: "6383",

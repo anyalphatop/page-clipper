@@ -131,9 +131,9 @@ async function handleDownload(): Promise<void> {
 
 
 export default defineContentScript({
-  matches: ["*://*.douyin.com/*"],
-  runAt: "document_idle",
-  world: "MAIN",
+  matches: ["*://*.douyin.com/*"], // 仅在抖音页面生效
+  runAt: "document_idle",         // 页面加载完成后执行
+  world: "MAIN",                  // 运行在页面主环境，可访问页面的 JS 变量
   // 入口：启动轮询
   main() {
     setInterval(() => {

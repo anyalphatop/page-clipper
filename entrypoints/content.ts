@@ -1,5 +1,7 @@
-const DOWNLOAD_DOWNLOAD_BTN_CLASS = "__page_clipper_download_btn__";
+// 注入到页面中的下载按钮的 CSS class，用于标识和避免重复注入
+const DOWNLOAD_BTN_CLASS = "__page_clipper_download_btn__";
 
+// 下载按钮内的图标 SVG
 const DOWNLOAD_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
   <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
 </svg>`;

@@ -13,6 +13,10 @@ function getVid(): string {
   return (window as any).player?.config?.vid;
 }
 
+// 获取最佳画质的视频下载链接：
+// 1. 调用抖音 aweme/detail 接口获取视频详情
+// 2. 过滤掉纯音频条目，按码率降序排序，取画质最高的版本
+// 3. 返回该版本的第一个播放地址
 async function fetchBestVideoUrl(vid: string): Promise<string> {
   const params = new URLSearchParams({
     device_platform: "webapp", aid: "6383",

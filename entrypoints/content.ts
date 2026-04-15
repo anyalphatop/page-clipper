@@ -87,11 +87,23 @@ function getVid(): string {
   return (window as any).player?.config?.vid;
 }
 
+// 从 URL 的 mime_type 查询参数中解析文件扩展名，默认 mp4
+function mimeTypeToExt(url: string): string {
+  const mimeType = new URL(url).searchParams.get("mime_type") ?? "";
+  const map: Record<string, string> = {
+    "video_mp4": "mp4",
+    "video/mp4": "mp4",
+    "video_webm": "webm",
+    "video/webm": "webm",
+  };
+  return map[mimeType] ?? "mp4";
+}
+
 // 获取最佳画质的视频下载链接：
 // 1. 调用抖音 aweme/detail 接口获取视频详情
 // 2. 过滤掉纯音频条目，按码率降序排序，取画质最高的版本
-// 3. 返回该版本的第一个播放地址
-async function fetchBestVideoUrl(vid: string): Promise<string> {
+// 3. 返回该版本的第一个播放地址及对应的文件扩展名
+async function fetchBestVideoUrl(vid: string): Promise<{ url: string; ext: string } | null> {
   const params = new URLSearchParams({
     device_platform: "webapp", aid: "6383",
     channel: "channel_pc_web", aweme_id: vid,
@@ -105,11 +117,13 @@ async function fetchBestVideoUrl(vid: string): Promise<string> {
   const best = ((data.aweme_detail?.video?.bit_rate ?? []) as any[])
     .filter((b) => !b.audio_file_id)
     .sort((a, b) => b.bit_rate - a.bit_rate)[0];
-  return best?.play_addr?.url_list?.[0];
+  const url = best?.play_addr?.url_list?.[0];
+  if (!url) return null;
+  return { url, ext: mimeTypeToExt(url) };
 }
 
 // 流式下载视频，通过 onProgress 回调实时上报进度（0~100），完成后触发浏览器文件下载
-async function triggerDownload(url: string, vid: string, onProgress: (pct: number) => void): Promise<void> {
+async function triggerDownload(url: string, vid: string, ext: string, onProgress: (pct: number) => void): Promise<void> {
   const resp = await fetch(url);
   const total = parseInt(resp.headers.get("content-length") || "0");
   const reader = resp.body!.getReader();
@@ -127,7 +141,7 @@ async function triggerDownload(url: string, vid: string, onProgress: (pct: numbe
   const blob = new Blob(chunks);
   const a = Object.assign(document.createElement("a"), {
     href: URL.createObjectURL(blob),
-    download: `${vid}.mp4`,
+    download: `${vid}.${ext}`,
   });
   a.click();
 }
@@ -142,12 +156,12 @@ async function handleDownload(event: Event): Promise<void> {
   const vid = getVid();
   if (!vid) return;
 
-  const url = await fetchBestVideoUrl(vid);
-  if (!url) return;
+  const result = await fetchBestVideoUrl(vid);
+  if (!result) return;
 
   wrapper.dataset.downloading = "true";
   try {
-    await triggerDownload(url, vid, (pct) => {
+    await triggerDownload(result.url, vid, result.ext, (pct) => {
       if (label) label.textContent = `${pct}%`;
     });
   } finally {

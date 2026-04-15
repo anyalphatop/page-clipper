@@ -5,18 +5,13 @@ export default defineContentScript({
   runAt: "document_start",
   world: "MAIN",
   main() {
-    const btn = document.createElement("button");
-    btn.textContent = "下载";
-    btn.style.cssText = `
-      position: fixed; bottom: 80px; right: 24px; z-index: 99999;
-      padding: 8px 18px; background: #fe2c55; color: #fff;
-      border: none; border-radius: 6px; font-size: 15px;
-      font-weight: 600; cursor: pointer;
-    `;
+    const BTN_ID = "__page_clipper_download_btn__";
 
-    btn.style.display = "none";
+    const downloadSvg = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
+      <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
+    </svg>`;
 
-    btn.addEventListener("click", async () => {
+    async function handleDownload() {
       const vid = (window as any).player?.config?.vid;
       logger.debug("vid =", vid);
 
@@ -43,27 +38,65 @@ export default defineContentScript({
         download: `${vid}.mp4`,
       });
       a.click();
-    });
+    }
 
-    const checkText = () => {
-      const visible = document.body?.innerText?.includes("听抖音") ?? false;
-      btn.style.display = visible ? "block" : "none";
-      logger.debug("听抖音 检测:", visible);
-    };
+    function injectBtn() {
+      // 防重复插入
+      if (document.getElementById(BTN_ID)) return;
 
-    const appendBtn = () => {
-      if (!document.body.contains(btn)) document.body.appendChild(btn);
-      checkText();
-    };
+      // 找到包含"听抖音"文字的元素
+      const all = Array.from(document.querySelectorAll("*"));
+      const tingEl = all.find((el) =>
+        Array.from(el.childNodes).some(
+          (n) => n.nodeType === 3 && n.textContent?.includes("听抖音")
+        )
+      );
+      if (!tingEl) return;
 
-    document.addEventListener("DOMContentLoaded", appendBtn);
-    if (document.body) appendBtn();
+      // 向上找到带 data-popupid 的外层容器
+      let container: Element | null = tingEl;
+      for (let i = 0; i < 5; i++) {
+        container = container.parentElement;
+        if (!container) break;
+        if (container.hasAttribute("data-popupid")) break;
+      }
+      if (!container) return;
 
-    const observer = new MutationObserver(checkText);
-    const startObserver = () => {
-      if (document.body) observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    };
-    document.addEventListener("DOMContentLoaded", startObserver);
-    if (document.body) startObserver();
+      // 构造按钮，复用页面已有 CSS 类
+      const wrapper = document.createElement("div");
+      wrapper.id = BTN_ID;
+      wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
+
+      const inner = document.createElement("div");
+      inner.className = "fR9ZbClg JBKVqbn_";
+
+      const iconSpan = document.createElement("span");
+      iconSpan.setAttribute("role", "img");
+      iconSpan.className = "semi-icon semi-icon-default";
+      iconSpan.innerHTML = downloadSvg;
+
+      const label = document.createElement("div");
+      label.className = "rWZP7wQY";
+      label.textContent = "下载";
+
+      inner.appendChild(iconSpan);
+      inner.appendChild(label);
+      wrapper.appendChild(inner);
+
+      wrapper.addEventListener("click", handleDownload);
+
+      container.insertAdjacentElement("afterend", wrapper);
+      logger.debug("下载按钮已注入");
+    }
+
+    const observer = new MutationObserver(injectBtn);
+
+    function start() {
+      injectBtn();
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    document.addEventListener("DOMContentLoaded", start);
+    if (document.body) start();
   },
 });

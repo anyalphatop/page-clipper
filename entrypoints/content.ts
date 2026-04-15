@@ -45,19 +45,19 @@ async function handleDownload(): Promise<void> {
   await triggerDownload(url, vid);
 }
 
-function findTingContainer(activeVideo: Element): Element | null {
+function findTingButton(activeVideo: Element): Element | null {
   const tingEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
     Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
   );
   if (!tingEl) return null;
 
-  let container: Element | null = tingEl;
+  let button: Element | null = tingEl;
   for (let i = 0; i < 5; i++) {
-    container = container.parentElement;
-    if (!container) break;
-    if (container.hasAttribute("data-popupid")) break;
+    button = button.parentElement;
+    if (!button) break;
+    if (button.hasAttribute("data-popupid")) break;
   }
-  return container;
+  return button;
 }
 
 function createDownloadBtn(): HTMLElement {
@@ -92,7 +92,7 @@ function hasDownloadBtn(video: Element): boolean {
 function injectDownloadBtn(activeVideo: Element): void {
   if (hasDownloadBtn(activeVideo)) return;
 
-  const container = findTingContainer(activeVideo);
+  const container = findTingButton(activeVideo);
   if (!container) return;
 
   container.insertAdjacentElement("afterend", createDownloadBtn());

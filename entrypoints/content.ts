@@ -63,6 +63,7 @@ function findTingDouyinBtn(activeVideo: Element): Element | null {
   return tingDouyinBtn;
 }
 
+// 创建下载按钮 DOM 元素
 function createDownloadBtn(): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = DOWNLOAD_BTN_CLASS;
@@ -88,10 +89,12 @@ function createDownloadBtn(): HTMLElement {
   return wrapper;
 }
 
+// 判断视频元素中是否已注入下载按钮
 function hasDownloadBtn(video: Element): boolean {
   return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
 }
 
+// 将下载按钮注入到「听抖音」按钮的后面
 function injectDownloadBtn(activeVideo: Element): void {
   if (hasDownloadBtn(activeVideo)) return;
 

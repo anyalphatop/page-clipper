@@ -28,7 +28,15 @@ if (location.hostname === "douyin.com" || location.hostname.endsWith(".douyin.co
       .filter((b) => !b.audio_file_id)
       .sort((a, b) => b.bit_rate - a.bit_rate)[0];
 
-    console.log(`${PREFIX} 下载链接 =`, best?.play_addr?.url_list?.[0]);
+    const url = best?.play_addr?.url_list?.[0];
+    console.log(`${PREFIX} 下载链接 =`, url);
+
+    const blob = await (await fetch(url, { credentials: "include" })).blob();
+    const a = Object.assign(document.createElement("a"), {
+      href: URL.createObjectURL(blob),
+      download: `${vid}.mp4`,
+    });
+    a.click();
   });
 
   document.addEventListener("DOMContentLoaded", () => document.body.appendChild(btn));

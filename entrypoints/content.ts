@@ -88,8 +88,10 @@ export default defineContentScript({
     setInterval(() => {
       logger.info("--- 轮询开始 ---");
 
-      const activeVideos = document.querySelectorAll('[data-e2e="feed-active-video"]');
-      logger.info("找到活跃视频数量:", activeVideos.length);
+      const activeVideos = Array.from(
+        document.querySelectorAll('[data-e2e="feed-active-video"]')
+      ).filter(el => (el as HTMLElement).offsetWidth > 0);
+      logger.info("找到可见活跃视频数量:", activeVideos.length);
 
       activeVideos.forEach((activeVideo) => {
         const hasTing = !!activeVideo.innerText?.includes("听抖音");

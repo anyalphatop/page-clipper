@@ -1,0 +1,7 @@
+var content=(function(){function e(e){return e}var t=`[PageClipper]`,n=e({matches:[`*://*.douyin.com/*`],runAt:`document_start`,world:`MAIN`,main(){let e=document.createElement(`button`);e.textContent=`下载`,e.style.cssText=`
+      position: fixed; bottom: 80px; right: 24px; z-index: 99999;
+      padding: 8px 18px; background: #fe2c55; color: #fff;
+      border: none; border-radius: 6px; font-size: 15px;
+      font-weight: 600; cursor: pointer;
+    `,e.addEventListener(`click`,async()=>{let e=window.player?.config?.vid;console.log(`${t} vid =`,e);let n=new URLSearchParams({device_platform:`webapp`,aid:`6383`,channel:`channel_pc_web`,aweme_id:e,update_version_code:`170400`}),r=((await(await fetch(`https://www.douyin.com/aweme/v1/web/aweme/detail/?`+n,{headers:{Referer:`https://www.douyin.com/`},credentials:`include`})).json()).aweme_detail?.video?.bit_rate??[]).filter(e=>!e.audio_file_id).sort((e,t)=>t.bit_rate-e.bit_rate)[0]?.play_addr?.url_list?.[0];console.log(`${t} 下载链接 =`,r);let i=await(await fetch(r)).blob();Object.assign(document.createElement(`a`),{href:URL.createObjectURL(i),download:`${e}.mp4`}).click()}),document.addEventListener(`DOMContentLoaded`,()=>document.body.appendChild(e)),document.body&&document.body.appendChild(e)}}),r={debug:(...e)=>([...e],void 0),log:(...e)=>([...e],void 0),warn:(...e)=>([...e],void 0),error:(...e)=>([...e],void 0)};return(async()=>{try{return await n.main()}catch(e){throw r.error(`The content script "content" crashed on startup!`,e),e}})()})();
+content;

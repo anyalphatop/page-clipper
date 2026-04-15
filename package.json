@@ -22,7 +22,7 @@
   "homepage": "https://github.com/anyalphatop/page-clipper#readme",
   "devDependencies": {
     "@types/chrome": "^0.1.40",
-    "typescript": "^6.0.2",
+    "typescript": "^5.9.3",
     "vite": "^8.0.8",
     "wxt": "^0.20.22"
   }

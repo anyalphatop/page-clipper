@@ -85,8 +85,12 @@ function createDownloadBtn(): HTMLElement {
   return wrapper;
 }
 
+function hasDownloadBtn(video: Element): boolean {
+  return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
+}
+
 function injectDownloadBtn(activeVideo: Element): void {
-  if (activeVideo.querySelector(`.${DOWNLOAD_BTN_CLASS}`)) return;
+  if (hasDownloadBtn(activeVideo)) return;
 
   const container = findTingContainer(activeVideo);
   if (!container) return;

@@ -91,6 +91,7 @@ function injectBtnInto(activeVideo: Element): void {
   container.insertAdjacentElement("afterend", createDownloadBtn());
 }
 
+// 获取当前可见的活跃视频元素
 function getActiveVideos(): Element[] {
   return Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
     .filter((el) => (el as HTMLElement).offsetWidth > 0);

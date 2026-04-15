@@ -16,7 +16,7 @@ const DOWNLOAD_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://ww
 </svg>`;
 
 // 下载中的加载圈图标 SVG（配合 CSS animation 旋转）
-const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px; animation: __pc_spin__ 1s linear infinite;">
+const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:30px; animation: __pc_spin__ 1s linear infinite;">
   <circle cx="18" cy="18" r="14" stroke="currentColor" stroke-width="3" stroke-dasharray="60 28" stroke-linecap="round"/>
 </svg>`;
 

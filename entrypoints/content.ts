@@ -16,7 +16,7 @@ export default defineContentScript({
 
     btn.addEventListener("click", async () => {
       const vid = (window as any).player?.config?.vid;
-      logger.log("vid =", vid);
+      logger.debug("vid =", vid);
 
       const params = new URLSearchParams({
         device_platform: "webapp", aid: "6383",
@@ -33,7 +33,7 @@ export default defineContentScript({
         .sort((a, b) => b.bit_rate - a.bit_rate)[0];
 
       const url = best?.play_addr?.url_list?.[0];
-      logger.log("下载链接 =", url);
+      logger.debug("下载链接 =", url);
 
       const blob = await (await fetch(url)).blob();
       const a = Object.assign(document.createElement("a"), {

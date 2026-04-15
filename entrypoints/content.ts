@@ -113,7 +113,7 @@ async function triggerDownload(url: string, vid: string, onProgress: (pct: numbe
   const resp = await fetch(url);
   const total = parseInt(resp.headers.get("content-length") || "0");
   const reader = resp.body!.getReader();
-  const chunks: Uint8Array[] = [];
+  const chunks: Uint8Array<ArrayBuffer>[] = [];
   let received = 0;
 
   while (true) {

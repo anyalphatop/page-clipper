@@ -47,7 +47,7 @@ async function handleDownload(): Promise<void> {
 
 // 在活跃视频中找到「听抖音」按钮：
 // 1. 找到直接包含「听抖音」文字的元素
-// 2. 从该元素向上最多遍历 5 层，找到带 data-popupid 属性的外层容器
+// 2. 从该元素向上最多遍历 5 层，找到带 data-popupid 属性的外层容器（5 层为经验值）
 function findTingDouyinButton(activeVideo: Element): Element | null {
   const tingDouyinTextEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
     Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))

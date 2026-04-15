@@ -216,7 +216,9 @@ if (isDouyin) {
     // 优先从 window.player 读（最可靠）
     let url = readPlayerUrl();
     const awemeId: string =
-      (window as any).player?.config?.awemeInfo?.aweme_id ?? "";
+      (window as any).player?.config?.awemeInfo?.awemeId ??
+      (window as any).player?.config?.vid ??
+      "";
 
     // fallback：从 React fiber 读
     if (!url) url = readFiberUrl();

@@ -97,9 +97,6 @@ export default defineContentScript({
 
       if (hasTing && !hasBtn) {
         injectBtn();
-      } else if (!hasTing && hasBtn) {
-        activeVideo?.querySelector(`#${BTN_ID}`)?.remove();
-        logger.info("「听抖音」消失，下载按钮已移除");
       }
 
       logger.info("--- 轮询结束 ---");

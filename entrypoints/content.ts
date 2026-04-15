@@ -39,9 +39,14 @@ async function triggerDownload(url: string, vid: string): Promise<void> {
   a.click();
 }
 
+// 处理下载：获取视频 ID 和最佳下载链接，触发文件下载
 async function handleDownload(): Promise<void> {
   const vid = getVid();
+  if (!vid) return;
+
   const url = await fetchBestVideoUrl(vid);
+  if (!url) return;
+
   await triggerDownload(url, vid);
 }
 

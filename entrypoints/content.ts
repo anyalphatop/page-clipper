@@ -75,6 +75,11 @@ function hasDownloadBtn(video: Element): boolean {
   return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
 }
 
+// 将下载按钮从活跃视频中移除
+function removeDownloadBtn(activeVideo: Element): void {
+  activeVideo.querySelector(`.${DOWNLOAD_BTN_CLASS}`)?.remove();
+}
+
 // 创建下载按钮
 function createDownloadBtn(): HTMLElement {
   const wrapper = document.createElement("div");
@@ -211,8 +216,15 @@ export default defineContentScript({
     injectSpinKeyframes();
     setInterval(() => {
       const video = getActiveVideo();
-      if (video && hasTingDouyin(video)) {
+      if (!video) return;
+
+      if (hasTingDouyin(video)) {
         injectDownloadBtn(video);
+        return;
+      }
+
+      if (hasDownloadBtn(video)) {
+        removeDownloadBtn(video);
       }
     }, POLL_INTERVAL);
   },

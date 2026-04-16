@@ -24,7 +24,7 @@ const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="h
 function getActiveVideo(): Element | null {
   // Feed 页
   const feedVideos = Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
-    .filter((el) => (el as HTMLElement).offsetWidth > 0);
+    .filter((el) => (el as HTMLElement).offsetWidth > 0 && !!el.querySelector('video'));
 
   if (feedVideos.length > 1 && location.pathname === '/follow') {
     return feedVideos[feedVideos.length - 1];

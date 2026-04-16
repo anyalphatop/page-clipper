@@ -23,9 +23,13 @@ const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="h
 // 获取当前可见的活跃视频元素
 function getActiveVideo(): Element | null {
   // Feed 页
-  const feedVideo = Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
-    .find((el) => (el as HTMLElement).offsetWidth > 0);
-  if (feedVideo) return feedVideo;
+  const feedVideos = Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
+    .filter((el) => (el as HTMLElement).offsetWidth > 0);
+
+  if (feedVideos.length > 1 && location.pathname === '/follow') {
+    return feedVideos[feedVideos.length - 1];
+  }
+  if (feedVideos.length > 0) return feedVideos[0];
 
   // 视频页
   const detailVideo = document.querySelector('[data-e2e="video-detail"]') as HTMLElement | null;

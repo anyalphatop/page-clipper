@@ -22,8 +22,16 @@ const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="h
 
 // 获取当前可见的活跃视频元素
 function getActiveVideo(): Element | null {
-  return Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
-    .find((el) => (el as HTMLElement).offsetWidth > 0) ?? null;
+  // Feed 页
+  const feedVideo = Array.from(document.querySelectorAll('[data-e2e="feed-active-video"]'))
+    .find((el) => (el as HTMLElement).offsetWidth > 0);
+  if (feedVideo) return feedVideo;
+
+  // 视频页
+  const detailVideo = document.querySelector('[data-e2e="video-detail"]') as HTMLElement | null;
+  if (detailVideo && detailVideo.offsetWidth > 0) return detailVideo;
+
+  return null;
 }
 
 // 判断视频元素中是否包含「听抖音」文字

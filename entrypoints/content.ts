@@ -10,6 +10,9 @@ const DOWNLOAD_BTN_LABEL_CLASS = "__page_clipper_download_btn_label__";
 // 下载按钮图标 span 的 CSS class，用于在下载过程中切换图标
 const DOWNLOAD_BTN_ICON_CLASS = "__page_clipper_download_btn_icon__";
 
+// 转文本按钮的 CSS class
+const TEXT_BTN_CLASS = "__page_clipper_text_btn__";
+
 // 下载按钮内的图标 SVG
 const DOWNLOAD_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
   <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
@@ -75,9 +78,10 @@ function hasDownloadBtn(video: Element): boolean {
   return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
 }
 
-// 将下载按钮从活跃视频中移除
+// 将下载按钮和转文本按钮从活跃视频中移除
 function removeDownloadBtn(activeVideo: Element): void {
   activeVideo.querySelector(`.${DOWNLOAD_BTN_CLASS}`)?.remove();
+  activeVideo.querySelector(`.${TEXT_BTN_CLASS}`)?.remove();
 }
 
 // 创建下载按钮
@@ -106,14 +110,46 @@ function createDownloadBtn(): HTMLElement {
   return wrapper;
 }
 
-// 将下载按钮注入到「听抖音」按钮的后面
+// 创建转文本按钮
+function createTextBtn(): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = TEXT_BTN_CLASS;
+  wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
+
+  const inner = document.createElement("div");
+  inner.className = "fR9ZbClg JBKVqbn_";
+
+  const iconSpan = document.createElement("span");
+  iconSpan.setAttribute("role", "img");
+  iconSpan.className = "semi-icon semi-icon-default";
+  iconSpan.innerHTML = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
+  <rect x="7" y="4" width="22" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="11" y1="12" x2="25" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="11" y1="18" x2="25" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="11" y1="24" x2="19" y2="24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+</svg>`;
+
+  const label = document.createElement("div");
+  label.className = "rWZP7wQY";
+  label.textContent = "转文本";
+
+  inner.appendChild(iconSpan);
+  inner.appendChild(label);
+  wrapper.appendChild(inner);
+
+  return wrapper;
+}
+
+// 将下载按钮和转文本按钮注入到「听抖音」按钮的后面
 function injectDownloadBtn(activeVideo: Element): void {
   if (hasDownloadBtn(activeVideo)) return;
 
   const tingDouyinBtn = findTingDouyinBtn(activeVideo);
   if (!tingDouyinBtn) return;
 
-  tingDouyinBtn.insertAdjacentElement("afterend", createDownloadBtn());
+  const downloadBtn = createDownloadBtn();
+  tingDouyinBtn.insertAdjacentElement("afterend", downloadBtn);
+  downloadBtn.insertAdjacentElement("afterend", createTextBtn());
 }
 
 // 从页面播放器实例中获取当前视频 ID

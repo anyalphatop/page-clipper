@@ -86,22 +86,45 @@ function hasDownloadBtn(video: Element): boolean {
   return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
 }
 
+// 从「听抖音」按钮中动态提取样式，用于注入按钮时复用
+interface BtnStyles {
+  wrapperCssText: string;
+  innerClass: string;
+  iconClass: string;
+  labelClass: string;
+}
+
+function extractBtnStyles(tingDouyinBtn: Element): BtnStyles | null {
+  const inner = tingDouyinBtn.firstElementChild;
+  if (!inner) return null;
+  const iconSpan = inner.firstElementChild;
+  if (!iconSpan) return null;
+  const label = iconSpan.nextElementSibling;
+  if (!label) return null;
+  return {
+    wrapperCssText: (tingDouyinBtn as HTMLElement).style.cssText,
+    innerClass: inner.className,
+    iconClass: iconSpan.className,
+    labelClass: label.className,
+  };
+}
+
 // 创建下载按钮
-function createDownloadBtn(): HTMLElement {
+function createDownloadBtn(styles: BtnStyles): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = DOWNLOAD_BTN_CLASS;
-  wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
+  wrapper.style.cssText = styles.wrapperCssText;
 
   const inner = document.createElement("div");
-  inner.className = "fR9ZbClg JBKVqbn_";
+  inner.className = styles.innerClass;
 
   const iconSpan = document.createElement("span");
   iconSpan.setAttribute("role", "img");
-  iconSpan.className = `semi-icon semi-icon-default ${DOWNLOAD_BTN_ICON_CLASS}`;
+  iconSpan.className = `${styles.iconClass} ${DOWNLOAD_BTN_ICON_CLASS}`;
   iconSpan.innerHTML = DOWNLOAD_BTN_ICON;
 
   const label = document.createElement("div");
-  label.className = `rWZP7wQY ${DOWNLOAD_BTN_LABEL_CLASS}`;
+  label.className = `${styles.labelClass} ${DOWNLOAD_BTN_LABEL_CLASS}`;
   label.textContent = "下载";
 
   inner.appendChild(iconSpan);
@@ -118,21 +141,21 @@ function removeDownloadBtn(activeVideo: Element): void {
 }
 
 // 创建转文本按钮
-function createTextBtn(): HTMLElement {
+function createTextBtn(styles: BtnStyles): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = TEXT_BTN_CLASS;
-  wrapper.style.cssText = "position: relative; color: rgb(255, 255, 255); cursor: pointer;";
+  wrapper.style.cssText = styles.wrapperCssText;
 
   const inner = document.createElement("div");
-  inner.className = "fR9ZbClg JBKVqbn_";
+  inner.className = styles.innerClass;
 
   const iconSpan = document.createElement("span");
   iconSpan.setAttribute("role", "img");
-  iconSpan.className = "semi-icon semi-icon-default";
+  iconSpan.className = styles.iconClass;
   iconSpan.innerHTML = TEXT_BTN_ICON;
 
   const label = document.createElement("div");
-  label.className = "rWZP7wQY";
+  label.className = styles.labelClass;
   label.textContent = "转文本";
 
   inner.appendChild(iconSpan);
@@ -154,9 +177,12 @@ function injectBtns(activeVideo: Element): void {
   const tingDouyinBtn = findTingDouyinBtn(activeVideo);
   if (!tingDouyinBtn) return;
 
-  const downloadBtn = createDownloadBtn();
+  const styles = extractBtnStyles(tingDouyinBtn);
+  if (!styles) return;
+
+  const downloadBtn = createDownloadBtn(styles);
   tingDouyinBtn.insertAdjacentElement("afterend", downloadBtn);
-  downloadBtn.insertAdjacentElement("afterend", createTextBtn());
+  downloadBtn.insertAdjacentElement("afterend", createTextBtn(styles));
 }
 
 // 将下载按钮和转文本按钮从活跃视频中移除

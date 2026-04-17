@@ -13,6 +13,12 @@ const DOWNLOAD_BTN_ICON_CLASS = "__page_clipper_download_btn_icon__";
 // 转文本按钮的 CSS class
 const TEXT_BTN_CLASS = "__page_clipper_text_btn__";
 
+// 转文本按钮文字标签的 CSS class，用于更新状态文字
+const TEXT_BTN_LABEL_CLASS = "__page_clipper_text_btn_label__";
+
+// 转文本按钮图标 span 的 CSS class，用于切换图标
+const TEXT_BTN_ICON_CLASS = "__page_clipper_text_btn_icon__";
+
 // 下载按钮内的图标 SVG
 const DOWNLOAD_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
   <path d="M18 4a1.5 1.5 0 0 1 1.5 1.5v14.379l4.94-4.94a1.5 1.5 0 1 1 2.12 2.122l-7.5 7.5a1.5 1.5 0 0 1-2.12 0l-7.5-7.5a1.5 1.5 0 1 1 2.12-2.121l4.94 4.939V5.5A1.5 1.5 0 0 1 18 4zM7 26.5a1.5 1.5 0 0 0 0 3h22a1.5 1.5 0 0 0 0-3H7z" fill="currentColor"/>
@@ -151,16 +157,17 @@ function createTextBtn(styles: BtnStyles): HTMLElement {
 
   const iconSpan = document.createElement("span");
   iconSpan.setAttribute("role", "img");
-  iconSpan.className = styles.iconClass;
+  iconSpan.className = `${styles.iconClass} ${TEXT_BTN_ICON_CLASS}`;
   iconSpan.innerHTML = TEXT_BTN_ICON;
 
   const label = document.createElement("div");
-  label.className = styles.labelClass;
+  label.className = `${styles.labelClass} ${TEXT_BTN_LABEL_CLASS}`;
   label.textContent = "转文本";
 
   inner.appendChild(iconSpan);
   inner.appendChild(label);
   wrapper.appendChild(inner);
+  wrapper.addEventListener("click", handleTextConvert);
 
   return wrapper;
 }
@@ -253,6 +260,26 @@ async function triggerDownload(url: string, vid: string, ext: string, onProgress
     download: `${vid}.${ext}`,
   });
   a.click();
+}
+
+// 处理转文本：防重复点击，调用接口期间切换加载图标和状态文字，完成后短暂显示「已提交」再恢复
+async function handleTextConvert(event: Event): Promise<void> {
+  const wrapper = event.currentTarget as HTMLElement;
+  if (wrapper.dataset.converting === "true") return;
+
+  const icon = wrapper.querySelector(`.${TEXT_BTN_ICON_CLASS}`) as HTMLElement | null;
+  const label = wrapper.querySelector(`.${TEXT_BTN_LABEL_CLASS}`) as HTMLElement | null;
+
+  wrapper.dataset.converting = "true";
+  if (icon) icon.innerHTML = DOWNLOAD_BTN_ICON_LOADING;
+  if (label) label.textContent = "提交中";
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  } finally {
+    wrapper.dataset.converting = "false";
+    if (icon) icon.innerHTML = TEXT_BTN_ICON;
+    if (label) label.textContent = "转文本";
+  }
 }
 
 // 处理下载：防重复点击，实时更新按钮进度文字，完成后恢复

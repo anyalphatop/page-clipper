@@ -218,8 +218,8 @@ function mimeTypeToExt(url: string): string {
 
 // 获取最佳画质的视频下载链接：
 // 1. 调用抖音 aweme/detail 接口获取视频详情
-// 2. 过滤掉纯音频条目，按码率降序排序，取画质最高的版本
-// 3. 返回该版本的第一个播放地址及对应的文件扩展名
+// 2. 从 bit_rate 中按码率降序排序，取码率最高的版本
+// 3. 返回 play_addr.url_list[0] 及从 mime_type 解析的扩展名
 async function fetchBestVideoUrl(vid: string): Promise<{ url: string; ext: string } | null> {
   const params = new URLSearchParams({
     device_platform: "webapp", aid: "6383",
@@ -238,11 +238,11 @@ async function fetchBestVideoUrl(vid: string): Promise<{ url: string; ext: strin
   return { url, ext: mimeTypeToExt(url) };
 }
 
-// 获取最佳音质的音频下载链接：
+// 获取最小音频文件的下载链接：
 // 1. 调用抖音 aweme/detail 接口获取视频详情
-// 2. 从 bit_rate_audio 中按文件大小降序排序，取音质最高的版本
-// 3. 返回 audio_meta.url_list.main_url 及扩展名 m4a
-async function fetchBestAudioUrl(vid: string): Promise<{ url: string; ext: string } | null> {
+// 2. 从 bit_rate_audio 中按文件大小升序排序，取文件最小的版本
+// 3. 返回 audio_meta.url_list.main_url 及从 mime_type 解析的扩展名
+async function fetchSmallestAudioUrl(vid: string): Promise<{ url: string; ext: string } | null> {
   const params = new URLSearchParams({
     device_platform: "webapp", aid: "6383",
     channel: "channel_pc_web", aweme_id: vid,
@@ -254,7 +254,7 @@ async function fetchBestAudioUrl(vid: string): Promise<{ url: string; ext: strin
   );
   const data = await resp.json();
   const best = ((data.aweme_detail?.video?.bit_rate_audio ?? []) as any[])
-    .sort((a, b) => b.audio_meta?.size - a.audio_meta?.size)[0];
+    .sort((a, b) => a.audio_meta?.size - b.audio_meta?.size)[0];
   const url = best?.audio_meta?.url_list?.main_url;
   if (!url) return null;
   return { url, ext: mimeTypeToExt(url) };
@@ -295,7 +295,7 @@ async function handleTextConvert(event: Event): Promise<void> {
   const vid = getVid();
   if (!vid) return;
 
-  const result = await fetchBestAudioUrl(vid);
+  const result = await fetchSmallestAudioUrl(vid);
   if (!result) return;
 
   wrapper.dataset.downloading = "true";

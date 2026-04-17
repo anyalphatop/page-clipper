@@ -203,7 +203,7 @@ function getVid(): string {
   return (window as any).player?.config?.vid;
 }
 
-// 从 URL 的 mime_type 查询参数中解析文件扩展名，默认 mp4
+// 从 URL 的 mime_type 查询参数中解析视频文件扩展名，默认 mp4
 function mimeTypeToExt(url: string): string {
   const mimeType = new URL(url).searchParams.get("mime_type") ?? "";
   const map: Record<string, string> = {
@@ -214,6 +214,7 @@ function mimeTypeToExt(url: string): string {
   };
   return map[mimeType] ?? "mp4";
 }
+
 
 // 获取最佳画质的视频下载链接：
 // 1. 调用抖音 aweme/detail 接口获取视频详情
@@ -231,9 +232,30 @@ async function fetchBestVideoUrl(vid: string): Promise<{ url: string; ext: strin
   );
   const data = await resp.json();
   const best = ((data.aweme_detail?.video?.bit_rate ?? []) as any[])
-    .filter((b) => !b.audio_file_id)
     .sort((a, b) => b.bit_rate - a.bit_rate)[0];
   const url = best?.play_addr?.url_list?.[0];
+  if (!url) return null;
+  return { url, ext: mimeTypeToExt(url) };
+}
+
+// 获取最佳音质的音频下载链接：
+// 1. 调用抖音 aweme/detail 接口获取视频详情
+// 2. 从 bit_rate_audio 中按文件大小降序排序，取音质最高的版本
+// 3. 返回 audio_meta.url_list.main_url 及扩展名 m4a
+async function fetchBestAudioUrl(vid: string): Promise<{ url: string; ext: string } | null> {
+  const params = new URLSearchParams({
+    device_platform: "webapp", aid: "6383",
+    channel: "channel_pc_web", aweme_id: vid,
+    update_version_code: "170400",
+  });
+  const resp = await fetch(
+    "https://www.douyin.com/aweme/v1/web/aweme/detail/?" + params,
+    { headers: { Referer: "https://www.douyin.com/" }, credentials: "include" }
+  );
+  const data = await resp.json();
+  const best = ((data.aweme_detail?.video?.bit_rate_audio ?? []) as any[])
+    .sort((a, b) => b.audio_meta?.size - a.audio_meta?.size)[0];
+  const url = best?.audio_meta?.url_list?.main_url;
   if (!url) return null;
   return { url, ext: mimeTypeToExt(url) };
 }
@@ -262,21 +284,28 @@ async function triggerDownload(url: string, vid: string, ext: string, onProgress
   a.click();
 }
 
-// 处理转文本：防重复点击，调用接口期间切换加载图标和状态文字，完成后短暂显示「已提交」再恢复
+// 处理转文本：与下载按钮行为相同，防重复点击，实时更新进度，完成后恢复
 async function handleTextConvert(event: Event): Promise<void> {
   const wrapper = event.currentTarget as HTMLElement;
-  if (wrapper.dataset.converting === "true") return;
+  if (wrapper.dataset.downloading === "true") return;
 
-  const icon = wrapper.querySelector(`.${TEXT_BTN_ICON_CLASS}`) as HTMLElement | null;
   const label = wrapper.querySelector(`.${TEXT_BTN_LABEL_CLASS}`) as HTMLElement | null;
+  const icon = wrapper.querySelector(`.${TEXT_BTN_ICON_CLASS}`) as HTMLElement | null;
 
-  wrapper.dataset.converting = "true";
+  const vid = getVid();
+  if (!vid) return;
+
+  const result = await fetchBestAudioUrl(vid);
+  if (!result) return;
+
+  wrapper.dataset.downloading = "true";
   if (icon) icon.innerHTML = DOWNLOAD_BTN_ICON_LOADING;
-  if (label) label.textContent = "提交中";
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await triggerDownload(result.url, vid, result.ext, (pct) => {
+      if (label) label.textContent = `${pct}%`;
+    });
   } finally {
-    wrapper.dataset.converting = "false";
+    wrapper.dataset.downloading = "false";
     if (icon) icon.innerHTML = TEXT_BTN_ICON;
     if (label) label.textContent = "转文本";
   }

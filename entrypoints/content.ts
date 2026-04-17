@@ -23,6 +23,14 @@ const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="h
   <circle cx="18" cy="18" r="14" stroke="currentColor" stroke-width="3" stroke-dasharray="60 28" stroke-linecap="round"/>
 </svg>`;
 
+// 转文本按钮内的图标 SVG
+const TEXT_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
+  <rect x="7" y="4" width="22" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="11" y1="12" x2="25" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="11" y1="18" x2="25" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="11" y1="24" x2="19" y2="24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+</svg>`;
+
 // 获取当前可见的活跃视频元素
 function getActiveVideo(): Element | null {
   // Feed 页
@@ -78,12 +86,6 @@ function hasDownloadBtn(video: Element): boolean {
   return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
 }
 
-// 将下载按钮和转文本按钮从活跃视频中移除
-function removeDownloadBtn(activeVideo: Element): void {
-  activeVideo.querySelector(`.${DOWNLOAD_BTN_CLASS}`)?.remove();
-  activeVideo.querySelector(`.${TEXT_BTN_CLASS}`)?.remove();
-}
-
 // 创建下载按钮
 function createDownloadBtn(): HTMLElement {
   const wrapper = document.createElement("div");
@@ -110,6 +112,11 @@ function createDownloadBtn(): HTMLElement {
   return wrapper;
 }
 
+// 将下载按钮从活跃视频中移除
+function removeDownloadBtn(activeVideo: Element): void {
+  activeVideo.querySelector(`.${DOWNLOAD_BTN_CLASS}`)?.remove();
+}
+
 // 创建转文本按钮
 function createTextBtn(): HTMLElement {
   const wrapper = document.createElement("div");
@@ -122,12 +129,7 @@ function createTextBtn(): HTMLElement {
   const iconSpan = document.createElement("span");
   iconSpan.setAttribute("role", "img");
   iconSpan.className = "semi-icon semi-icon-default";
-  iconSpan.innerHTML = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
-  <rect x="7" y="4" width="22" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/>
-  <line x1="11" y1="12" x2="25" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="11" y1="18" x2="25" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="11" y1="24" x2="19" y2="24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-</svg>`;
+  iconSpan.innerHTML = TEXT_BTN_ICON;
 
   const label = document.createElement("div");
   label.className = "rWZP7wQY";
@@ -140,8 +142,13 @@ function createTextBtn(): HTMLElement {
   return wrapper;
 }
 
+// 将转文本按钮从活跃视频中移除
+function removeTextBtn(activeVideo: Element): void {
+  activeVideo.querySelector(`.${TEXT_BTN_CLASS}`)?.remove();
+}
+
 // 将下载按钮和转文本按钮注入到「听抖音」按钮的后面
-function injectDownloadBtn(activeVideo: Element): void {
+function injectBtns(activeVideo: Element): void {
   if (hasDownloadBtn(activeVideo)) return;
 
   const tingDouyinBtn = findTingDouyinBtn(activeVideo);
@@ -150,6 +157,12 @@ function injectDownloadBtn(activeVideo: Element): void {
   const downloadBtn = createDownloadBtn();
   tingDouyinBtn.insertAdjacentElement("afterend", downloadBtn);
   downloadBtn.insertAdjacentElement("afterend", createTextBtn());
+}
+
+// 将下载按钮和转文本按钮从活跃视频中移除
+function removeBtns(activeVideo: Element): void {
+  removeDownloadBtn(activeVideo);
+  removeTextBtn(activeVideo);
 }
 
 // 从页面播放器实例中获取当前视频 ID
@@ -255,12 +268,12 @@ export default defineContentScript({
       if (!video) return;
 
       if (hasTingDouyin(video)) {
-        injectDownloadBtn(video);
+        injectBtns(video);
         return;
       }
 
       if (hasDownloadBtn(video)) {
-        removeDownloadBtn(video);
+        removeBtns(video);
       }
     }, POLL_INTERVAL);
   },

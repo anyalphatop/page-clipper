@@ -25,10 +25,10 @@ const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="h
 
 // 转文本按钮内的图标 SVG
 const TEXT_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
-  <rect x="7" y="4" width="22" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/>
-  <line x1="11" y1="12" x2="25" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="11" y1="18" x2="25" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="11" y1="24" x2="19" y2="24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="10" y="7" width="16" height="22" rx="2" stroke="currentColor" stroke-width="2.5"/>
+  <line x1="13" y1="14" x2="23" y2="14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="13" y1="18" x2="23" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="13" y1="22" x2="19" y2="22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
 </svg>`;
 
 // 获取当前可见的活跃视频元素

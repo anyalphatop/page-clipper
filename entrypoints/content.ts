@@ -147,7 +147,7 @@ function removeDownloadBtn(activeVideo: Element): void {
 }
 
 // 创建转文本按钮
-function createTextBtn(styles: BtnStyles): HTMLElement {
+function createTranscribeBtn(styles: BtnStyles): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = TEXT_BTN_CLASS;
   wrapper.style.cssText = styles.wrapperCssText;
@@ -167,13 +167,13 @@ function createTextBtn(styles: BtnStyles): HTMLElement {
   inner.appendChild(iconSpan);
   inner.appendChild(label);
   wrapper.appendChild(inner);
-  wrapper.addEventListener("click", handleTextConvert);
+  wrapper.addEventListener("click", handleTranscribe);
 
   return wrapper;
 }
 
 // 将转文本按钮从活跃视频中移除
-function removeTextBtn(activeVideo: Element): void {
+function removeTranscribeBtn(activeVideo: Element): void {
   activeVideo.querySelector(`.${TEXT_BTN_CLASS}`)?.remove();
 }
 
@@ -189,13 +189,13 @@ function injectBtns(activeVideo: Element): void {
 
   const downloadBtn = createDownloadBtn(styles);
   tingDouyinBtn.insertAdjacentElement("afterend", downloadBtn);
-  downloadBtn.insertAdjacentElement("afterend", createTextBtn(styles));
+  downloadBtn.insertAdjacentElement("afterend", createTranscribeBtn(styles));
 }
 
 // 将下载按钮和转文本按钮从活跃视频中移除
 function removeBtns(activeVideo: Element): void {
   removeDownloadBtn(activeVideo);
-  removeTextBtn(activeVideo);
+  removeTranscribeBtn(activeVideo);
 }
 
 // 从页面播放器实例中获取当前视频 ID
@@ -279,13 +279,13 @@ async function triggerDownload(url: string, vid: string, ext: string, onProgress
   const blob = new Blob(chunks);
   const a = Object.assign(document.createElement("a"), {
     href: URL.createObjectURL(blob),
-    download: `${vid}.${ext}`,
+    download: `page_clipper_douyin_${vid}.${ext}`,
   });
   a.click();
 }
 
 // 处理转文本：与下载按钮行为相同，防重复点击，实时更新进度，完成后恢复
-async function handleTextConvert(event: Event): Promise<void> {
+async function handleTranscribe(event: Event): Promise<void> {
   const wrapper = event.currentTarget as HTMLElement;
   if (wrapper.dataset.downloading === "true") return;
 

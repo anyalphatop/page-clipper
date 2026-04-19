@@ -295,7 +295,7 @@ async function handleTextConvert(event: Event): Promise<void> {
   const vid = getVid();
   if (!vid) return;
 
-  const result = await fetchSmallestAudioUrl(vid);
+  const result = (await fetchSmallestAudioUrl(vid)) ?? (await fetchBestVideoUrl(vid));
   if (!result) return;
 
   wrapper.dataset.downloading = "true";

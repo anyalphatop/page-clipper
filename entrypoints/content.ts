@@ -31,10 +31,7 @@ const DOWNLOAD_BTN_ICON_LOADING = `<svg viewBox="0 0 36 36" fill="none" xmlns="h
 
 // 转文本按钮内的图标 SVG
 const TEXT_BTN_ICON = `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="font-size:36px;">
-  <rect x="10" y="7" width="16" height="22" rx="2" stroke="currentColor" stroke-width="2.5"/>
-  <line x1="13" y1="14" x2="23" y2="14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="13" y1="18" x2="23" y2="18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="13" y1="22" x2="19" y2="22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 7L24 7Q26 7 26 9L26 27Q26 29 24 29L12 29Q10 29 10 27L10 9Q10 7 12 7ZM13 13L23 13L23 15L13 15ZM13 17L23 17L23 19L13 19ZM13 21L19 21L19 23L13 23Z" fill="currentColor"/>
 </svg>`;
 
 // 获取当前可见的活跃视频元素
@@ -60,22 +57,14 @@ function hasTingDouyin(video: Element): boolean {
   return !!(video as HTMLElement).innerText?.includes("听抖音");
 }
 
-// 在活跃视频中找到「听抖音」按钮：
-// 1. 找到直接包含「听抖音」文字的元素
-// 2. 从该元素向上最多遍历 5 层，找到带 data-popupid 属性的外层容器（5 层为经验值）
-function findTingDouyinBtn(activeVideo: Element): Element | null {
-  const tingDouyinTextEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
-    Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
+// 判断视频元素中是否包含互动区（点赞、评论、收藏、分享四个按钮同时存在）
+function hasInteraction(video: Element): boolean {
+  return (
+    !!video.querySelector('[data-e2e="video-player-digg"]') &&
+    !!video.querySelector('[data-e2e="feed-comment-icon"]') &&
+    !!video.querySelector('[data-e2e="video-player-collect"]') &&
+    !!video.querySelector('[data-e2e="video-player-share"]')
   );
-  if (!tingDouyinTextEl) return null;
-
-  let tingDouyinBtn: Element | null = tingDouyinTextEl;
-  for (let i = 0; i < 5; i++) {
-    tingDouyinBtn = tingDouyinBtn.parentElement;
-    if (!tingDouyinBtn) break;
-    if (tingDouyinBtn.hasAttribute("data-popupid")) break;
-  }
-  return tingDouyinBtn;
 }
 
 // 向页面注入旋转动画 keyframes（只注入一次）
@@ -92,24 +81,31 @@ function hasDownloadBtn(video: Element): boolean {
   return !!video.querySelector(`.${DOWNLOAD_BTN_CLASS}`);
 }
 
-// 从「听抖音」按钮中动态提取样式，用于注入按钮时复用
+// 从分享按钮中动态提取样式，用于注入按钮时复用
+// 分享按钮结构：wrapper > inner > iconWrapper > iconSpan，label 是 inner 的兄弟节点
 interface BtnStyles {
-  wrapperCssText: string;
+  wrapperClass: string;
   innerClass: string;
+  iconWrapperClass: string;
   iconClass: string;
   labelClass: string;
 }
 
-function extractBtnStyles(tingDouyinBtn: Element): BtnStyles | null {
-  const inner = tingDouyinBtn.firstElementChild;
+function extractBtnStyles(activeVideo: Element): BtnStyles | null {
+  const shareBtn = activeVideo.querySelector('[data-e2e="video-player-share"]');
+  if (!shareBtn) return null;
+  const inner = shareBtn.firstElementChild;
   if (!inner) return null;
-  const iconSpan = inner.firstElementChild;
+  const iconWrapper = inner.firstElementChild;
+  if (!iconWrapper) return null;
+  const iconSpan = iconWrapper.firstElementChild;
   if (!iconSpan) return null;
-  const label = iconSpan.nextElementSibling;
+  const label = inner.nextElementSibling;
   if (!label) return null;
   return {
-    wrapperCssText: (tingDouyinBtn as HTMLElement).style.cssText,
+    wrapperClass: shareBtn.className,
     innerClass: inner.className,
+    iconWrapperClass: iconWrapper.className,
     iconClass: iconSpan.className,
     labelClass: label.className,
   };
@@ -118,11 +114,13 @@ function extractBtnStyles(tingDouyinBtn: Element): BtnStyles | null {
 // 创建下载按钮
 function createDownloadBtn(styles: BtnStyles): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = DOWNLOAD_BTN_CLASS;
-  wrapper.style.cssText = styles.wrapperCssText;
+  wrapper.className = `${styles.wrapperClass} ${DOWNLOAD_BTN_CLASS}`;
 
   const inner = document.createElement("div");
   inner.className = styles.innerClass;
+
+  const iconWrapper = document.createElement("div");
+  iconWrapper.className = styles.iconWrapperClass;
 
   const iconSpan = document.createElement("span");
   iconSpan.setAttribute("role", "img");
@@ -133,9 +131,10 @@ function createDownloadBtn(styles: BtnStyles): HTMLElement {
   label.className = `${styles.labelClass} ${DOWNLOAD_BTN_LABEL_CLASS}`;
   label.textContent = "下载";
 
-  inner.appendChild(iconSpan);
-  inner.appendChild(label);
+  iconWrapper.appendChild(iconSpan);
+  inner.appendChild(iconWrapper);
   wrapper.appendChild(inner);
+  wrapper.appendChild(label);
   wrapper.addEventListener("click", handleDownload);
 
   return wrapper;
@@ -149,11 +148,13 @@ function removeDownloadBtn(activeVideo: Element): void {
 // 创建转文本按钮
 function createTranscribeBtn(styles: BtnStyles): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = TEXT_BTN_CLASS;
-  wrapper.style.cssText = styles.wrapperCssText;
+  wrapper.className = `${styles.wrapperClass} ${TEXT_BTN_CLASS}`;
 
   const inner = document.createElement("div");
   inner.className = styles.innerClass;
+
+  const iconWrapper = document.createElement("div");
+  iconWrapper.className = styles.iconWrapperClass;
 
   const iconSpan = document.createElement("span");
   iconSpan.setAttribute("role", "img");
@@ -164,9 +165,10 @@ function createTranscribeBtn(styles: BtnStyles): HTMLElement {
   label.className = `${styles.labelClass} ${TEXT_BTN_LABEL_CLASS}`;
   label.textContent = "转文本";
 
-  inner.appendChild(iconSpan);
-  inner.appendChild(label);
+  iconWrapper.appendChild(iconSpan);
+  inner.appendChild(iconWrapper);
   wrapper.appendChild(inner);
+  wrapper.appendChild(label);
   wrapper.addEventListener("click", handleTranscribe);
 
   return wrapper;
@@ -177,18 +179,34 @@ function removeTranscribeBtn(activeVideo: Element): void {
   activeVideo.querySelector(`.${TEXT_BTN_CLASS}`)?.remove();
 }
 
-// 将下载按钮和转文本按钮注入到「听抖音」按钮的后面
+// 找到插入锚点：优先用「听抖音」按钮，没有则退回到分享按钮
+function findInsertAnchor(activeVideo: Element): Element | null {
+  const tingDouyinTextEl = Array.from(activeVideo.querySelectorAll("*")).find((el) =>
+    Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent?.includes("听抖音"))
+  );
+  if (tingDouyinTextEl) {
+    let el: Element | null = tingDouyinTextEl;
+    for (let i = 0; i < 5; i++) {
+      el = el.parentElement;
+      if (!el) break;
+      if (el.hasAttribute("data-popupid")) return el;
+    }
+  }
+  return activeVideo.querySelector('[data-e2e="video-player-share"]');
+}
+
+// 将下载按钮和转文本按钮注入到锚点按钮的后面
 function injectBtns(activeVideo: Element): void {
   if (hasDownloadBtn(activeVideo)) return;
 
-  const tingDouyinBtn = findTingDouyinBtn(activeVideo);
-  if (!tingDouyinBtn) return;
-
-  const styles = extractBtnStyles(tingDouyinBtn);
+  const styles = extractBtnStyles(activeVideo);
   if (!styles) return;
 
+  const anchor = findInsertAnchor(activeVideo);
+  if (!anchor) return;
+
   const downloadBtn = createDownloadBtn(styles);
-  tingDouyinBtn.insertAdjacentElement("afterend", downloadBtn);
+  anchor.insertAdjacentElement("afterend", downloadBtn);
   downloadBtn.insertAdjacentElement("afterend", createTranscribeBtn(styles));
 }
 
@@ -349,7 +367,7 @@ export default defineContentScript({
       const video = getActiveVideo();
       if (!video) return;
 
-      if (hasTingDouyin(video)) {
+      if (hasTingDouyin(video) || hasInteraction(video)) {
         injectBtns(video);
         return;
       }
